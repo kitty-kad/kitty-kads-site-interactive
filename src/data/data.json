@@ -1,0 +1,122 @@
+{
+    "Header": {
+
+        "title": "Kitty Kads",
+        "paragraph1": "Cute NFT kitties",
+        "paragraph2": "Breed, trade, collect and play"
+
+    },
+    "About": {
+        "paragraph": "Kitty Kads are NFT kitties you can play with.",
+        "paragraph2": "Each one being a one of a kind NFT you can collect, trade and breed.",
+        "paragraph3": "Oh, did we mention that they also provide purrks for future Kitty Kad games and dapps?"
+    },
+    "Highlights": [{
+            "name": "10,000 Gen 0s",
+            "text": "All other kitties can only come from these. Gen 0s will also give holders extra perks"
+        },
+        {
+            "name": "Rarity",
+            "text": "No two kitties are the same, which also means some kitties are more rare and coveted"
+        },
+        {
+            "name": "3% Trade Fees",
+            "text": "To prevent artifical price hikes, a 3% trade fee will be taken from all sales"
+        },
+        {
+            "name": "Birthing Costs",
+            "text": "To help set a floor price, a 0.5KDA fee will be applied whenever two kitties are bred"
+        },
+        {
+            "name": "Pimp Your Kitties",
+            "text": "Earn money by letting others breed with your prestigious kitties to get its genes"
+        },
+        {
+            "name": "Birthing Cooldown",
+            "text": "Earlier generation breed faster, however different genes also impact cooldowns"
+        }
+    ],
+    "Roadmap": [
+        {
+            "icon": "fa fa-legal",
+            "title": "Gen 0 Mint - Q1",
+            "text": "First mints start. Gen 0 kitties can be used to create future generations"
+        },
+        {
+            "icon": "fa fa-home",
+            "title": "Breeding & Trading - Q1",
+            "text": "Breeding of kitties will be enabled to allow users to mix and match kitties"
+        },
+        {
+            "icon": "fa fa-chain",
+            "title": "Defi Integration - Q2",
+            "text": "Use Gen0 kitties for exclusive defi perks in upcoming dapps"
+        },
+        {
+            "icon": "fa fa-gamepad",
+            "title": "Kitty Kad Games - Q3",
+            "text": "New gaming world powered by Kitty Kad tokens and NFTs"
+        }
+    ],
+    "Tokenomics": [{
+        "title": "10,000 Gen 0s",
+        "text": "Kitties will be released in waves and can be purchased for 1 KDA and later in Kitty Kad tokens"
+    },
+    {
+        "title": "Breeding",
+        "text": "Kitties can be put up for breeding to make new kitties, in exchange for a fee"
+    },
+    {
+        "title": "Prizes and Whitelists",
+        "text": "Part of the Gen 0 slots will be reserved for prize and whitelist winners"
+    },
+    {
+        "title": "3% Trade Fees",
+        "text": "To prevent fake price pumps, a trade fee is applied to all sales. All profits go directly to cat foundations"
+    }
+],
+    "Socials": [{
+        "icon": "fa fa-reddit",
+        "link": "Fair launch will happen across DEX's on the Kadena ecosystem"
+    },
+    {
+        "icon": "fa fa-diamond",
+        "title": "NFTs - Q1 '22",
+        "text": "Cat themed NFTs coming to the Kadena blockchain"
+    },
+    {
+        "icon": "fa fa-gamepad",
+        "title": "Games and Dapps - Q2 '22",
+        "text": "Community themed games and dapps linked to the Kitty Kad token"
+    },
+    {
+        "icon": "fa fa-chain",
+        "title": "Cross-chain - H2 '22",
+        "text": "Via Kadena's bridges, the token will be available on more chains to allow more users to join"
+    }
+],
+    "Projects": [
+        {
+            "icon": "fa fa-bar-chart",
+            "title": "Token Price Tracker",
+            "text": "Tool that tracks the price of tokens native to Kadena",
+            "link": "https://prices.kittykad.com"
+        },
+        {
+            "icon": "fa fa-money",
+            "title": "Token",
+            "text": "A cute token Kitty Kad token, central to all the dapps",
+            "link": "https://kittykad.com"
+        },
+        {
+            "icon": "fa fa-gamepad",
+            "title": " NFTs Based Games",
+            "text": "Use your NFTs as characters inside games"
+        },
+        {
+            "icon": "fa fa-sitemap",
+            "title": "Defi Dapps",
+            "text": "The Kitty Kad defi ecosystem, powered by cats and love"
+        }
+]
+}
