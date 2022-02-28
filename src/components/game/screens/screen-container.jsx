@@ -361,7 +361,7 @@ const screensStyle = {
   display: "flex",
   height: "600px",
   width: "100%",
-  overflowY: "scroll",
+  // overflowY: "scroll",
   "&::WebkitScrollbar": { width: 5 },
   padding: "20 0",
 
