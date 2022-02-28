@@ -1,5 +1,7 @@
 export async function getImagesForIds(imageIds) {
-  const url = `http://localhost:4214/getImagesForIds`;
+  // const url = `http://localhost:4214/getImagesForIds`;
+  const url = `https://kitty-kads-nft-image-backend.herokuapp.com/getImagesForIds`;
+
   const body = { imageIds };
   const res = await fetchJson(url, body);
   const data = await res.json();
