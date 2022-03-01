@@ -83,7 +83,6 @@ export const PactContextProvider = ({ children }) => {
     } else {
       signedCmd = await Pact.wallet.sign(cmdToSign);
     }
-    console.log(signedCmd);
 
     updateTransactionState({ signedCmd });
     let localRes = await fetch(`${networkUrl}/api/v1/local`, mkReq(signedCmd));
@@ -202,7 +201,11 @@ export const PactContextProvider = ({ children }) => {
 
   const updateTransactionState = (newParams) => {
     const { transactionMessage, successCallback } = { currTransactionState };
-    setCurrTransactionState({ transactionMessage, successCallback, newParams });
+    setCurrTransactionState({
+      transactionMessage,
+      successCallback,
+      ...newParams,
+    });
   };
 
   const pollForTransaction = async (requestKey) => {

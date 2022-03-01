@@ -21,8 +21,8 @@ export default function TransactionModal(_props) {
     >
       <Box sx={style}>
         <BaseContent {...modalContent} />
-        {modalContent.action && (
-          <div style={{ paddingTop: 20 }}>
+        <div style={{ paddingTop: 20 }}>
+          {modalContent.action && (
             <span style={{ paddingRight: 20 }}>
               <Button
                 variant="contained"
@@ -33,15 +33,20 @@ export default function TransactionModal(_props) {
                 {modalContent.buttonText}
               </Button>
             </span>
-            <Button
-              variant="contained"
-              color="error"
-              onClick={pactContext.clearTransaction}
-            >
-              Cancel
-            </Button>
-          </div>
-        )}
+          )}
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => {
+              if (pactContext.currTransactionState.signingCmd != null) {
+                alert("You MUST CANCEL the transaction IN YOUR WALLET too");
+              }
+              pactContext.clearTransaction();
+            }}
+          >
+            Cancel
+          </Button>
+        </div>
       </Box>
     </Modal>
   );
