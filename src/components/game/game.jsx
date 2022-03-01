@@ -1,28 +1,35 @@
 import { useEffect, useContext, useState } from "react";
+import useWindowSize from "../../hooks/useWindowSize";
 import { PactContext, TEST_NET_ID } from "../../wallet/pact-wallet";
 import SideMenu from "./side-menu/side-menu";
 import ScreenContainer from "./screens/screen-container";
+import MobileScreen from "./screens/mobile-screen";
+
 import { GameContextProvider } from "./game-context";
 
 export const Header = (props) => {
   // const isSmallScreen = useWindowSize() <= 600;
   const screenStyle = { ...style };
   const { useSetNetworkSettings } = useContext(PactContext);
+  const windowSize = useWindowSize();
 
   useSetNetworkSettings(TEST_NET_ID, "1");
 
   return (
     <header id="header">
-      <GameContextProvider>
-        <div className="intro" style={screenStyle}>
-          <div style={sideMenuStyle}>
-            <SideMenu />
+      {windowSize < 800 && <MobileScreen />}
+      {windowSize >= 800 && (
+        <GameContextProvider>
+          <div className="intro" style={screenStyle}>
+            <div style={sideMenuStyle}>
+              <SideMenu />
+            </div>
+            <div style={mainContentStyle}>
+              <ScreenContainer />
+            </div>
           </div>
-          <div style={mainContentStyle}>
-            <ScreenContainer />
-          </div>
-        </div>
-      </GameContextProvider>
+        </GameContextProvider>
+      )}
     </header>
   );
 };

@@ -1,7 +1,6 @@
 import React, { useContext, useState, useEffect } from "react";
 import { GameContext } from "../game-context";
 import { SCREENS } from "../consts";
-import Button from "@mui/material/Button";
 
 import {
   useGetMyKitties,

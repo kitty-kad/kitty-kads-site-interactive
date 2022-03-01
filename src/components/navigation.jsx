@@ -1,4 +1,7 @@
+import useWindowSize from "../hooks/useWindowSize";
+
 export const Navigation = (props) => {
+  const windowSize = useWindowSize();
   return (
     <nav
       style={{
@@ -27,7 +30,7 @@ export const Navigation = (props) => {
         <div
           className="navbar-header"
           style={{
-            width: "20%",
+            width: windowSize < 800 ? "300px" : "20%",
             display: "flex",
             justifyContent: "center",
             marginLeft: 30,
@@ -47,7 +50,7 @@ export const Navigation = (props) => {
           </button>
           <a className="navbar-brand page-scroll" href="#page-top">
             Kitty Kad NFTs
-          </a>{" "}
+          </a>
         </div>
 
         <div
