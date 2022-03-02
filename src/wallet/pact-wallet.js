@@ -6,6 +6,7 @@ import "react-toastify/dist/ReactToastify.css";
 import TransactionModal from "./TransactionModal";
 import ConnectWalletModal from "./ConnectWalletModal";
 import Pact from "pact-lang-api";
+import { css } from "@emotion/react";
 
 export const PactContext = createContext();
 export const DEFAULT_GAS_PRICE = 0.000001;
@@ -13,6 +14,7 @@ export const MAIN_NET_ID = "mainnet01";
 export const TEST_NET_ID = "testnet04";
 
 const LOCAL_ACCOUNT_KEY = "LOCAL_ACCOUNT_KEY";
+const IS_X_WALLET_KEY = "IS_X_WALLET_KEY";
 
 const POLL_INTERVAL_S = 5;
 
@@ -20,11 +22,11 @@ export const PactContextProvider = ({ children }) => {
   const [chainId, setChainId] = useState(null);
   const [gasPrice, setGasPrice] = useState(DEFAULT_GAS_PRICE);
   const [netId, setNetId] = useState(null);
-  const [account, setAccount] = useState(() => tryLoadLocalAccount());
+  const [account, setAccount] = useState(() => tryLoadLocal(LOCAL_ACCOUNT_KEY));
   const [networkUrl, setNetworkUrl] = useState(null);
   const [currTransactionState, setCurrTransactionState] = useState({});
   const [isConnectWallet, setIsConnectWallet] = useState(false);
-  const [isXwallet, setIsXwallet] = useState(false);
+  const [isXwallet, setIsXwallet] = useState(tryLoadLocal(IS_X_WALLET_KEY));
 
   /* HELPER HOOKS */
   useEffect(() => {
@@ -72,6 +74,7 @@ export const PactContextProvider = ({ children }) => {
           networkId: netId,
           domain: window.location.hostname,
         });
+        console.log(accountConnectedRes);
         if (accountConnectedRes?.status !== "success") {
           toast.error("X Wallet connection was lost, please re-connect");
           clearTransaction();
@@ -94,7 +97,6 @@ export const PactContextProvider = ({ children }) => {
       signedCmd = xwalletSignRes.signedCmd;
     } else {
       try {
-        alert("HERE");
         signedCmd = await Pact.wallet.sign(cmdToSign);
       } catch (e) {
         console.log(e);
@@ -104,8 +106,6 @@ export const PactContextProvider = ({ children }) => {
       }
     }
     console.log(signedCmd);
-    return;
-
     updateTransactionState({ signedCmd });
     let localRes = null;
     try {
@@ -179,7 +179,8 @@ export const PactContextProvider = ({ children }) => {
         hideProgressBar: true,
         autoClose: 2000,
       });
-      trySaveLocalAccount(account);
+      trySaveLocal(LOCAL_ACCOUNT_KEY, account);
+      trySaveLocal(IS_X_WALLET_KEY, isXwallet);
     } else {
       toast.error(`Couldn't connect account :(`, {
         hideProgressBar: true,
@@ -200,8 +201,10 @@ export const PactContextProvider = ({ children }) => {
         networkId: netId,
       });
     }
-    trySaveLocalAccount(null);
+    trySaveLocal(LOCAL_ACCOUNT_KEY, null);
+    trySaveLocal(IS_X_WALLET_KEY, false);
     setAccount(null);
+    setIsXwallet(false);
     setIsConnectWallet(false);
   };
 
@@ -400,6 +403,19 @@ const wait = async (timeout) => {
   });
 };
 
+function tryLoadLocal(key) {
+  let val = localStorage.getItem(key);
+  if (val == null) {
+    return null;
+  }
+  try {
+    return JSON.parse(val);
+  } catch (e) {
+    console.log(e);
+    return null;
+  }
+}
+
 function tryLoadLocalAccount() {
   let account = localStorage.getItem(LOCAL_ACCOUNT_KEY);
   if (account == null) {
@@ -410,6 +426,15 @@ function tryLoadLocalAccount() {
   } catch (e) {
     console.log(e);
     return null;
+  }
+}
+
+function trySaveLocal(key, val) {
+  try {
+    localStorage.setItem(key, JSON.stringify(val));
+  } catch (e) {
+    console.log(e);
+    return;
   }
 }
 
