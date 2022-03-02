@@ -75,17 +75,33 @@ export const PactContextProvider = ({ children }) => {
       } catch (e) {
         console.log(e);
       }
-      console.log(xwalletSignRes);
       if (xwalletSignRes.status !== "success") {
+        toast.error("Failed to sign the command in X-Wallet");
+        clearTransaction();
         return;
       }
       signedCmd = xwalletSignRes.signedCmd;
     } else {
-      signedCmd = await Pact.wallet.sign(cmdToSign);
+      try {
+        signedCmd = await Pact.wallet.sign(cmdToSign);
+      } catch (e) {
+        console.log(e);
+        toast.error("Failed to sign the command in the wallet");
+        clearTransaction();
+        return;
+      }
     }
 
     updateTransactionState({ signedCmd });
-    let localRes = await fetch(`${networkUrl}/api/v1/local`, mkReq(signedCmd));
+    let localRes = null;
+    try {
+      localRes = await fetch(`${networkUrl}/api/v1/local`, mkReq(signedCmd));
+    } catch (e) {
+      console.log(e);
+      toast.error("Failed to confirm transaction with the network");
+      clearTransaction();
+      return;
+    }
     const parsedLocalRes = await parseRes(localRes);
     console.log(parsedLocalRes);
     if (parsedLocalRes?.result?.status === "success") {
@@ -104,7 +120,6 @@ export const PactContextProvider = ({ children }) => {
         sentCmd: signedCmd,
         requestKey,
       });
-      clearTransaction();
       await pollForTransaction(requestKey);
     } else {
       console.log(parsedLocalRes);
@@ -112,6 +127,7 @@ export const PactContextProvider = ({ children }) => {
         hideProgressBar: true,
       });
       clearTransaction();
+      return;
     }
   };
 
@@ -128,6 +144,17 @@ export const PactContextProvider = ({ children }) => {
     if (account != null) {
       if (isXwallet) {
         try {
+          const accountConnectedRes = await window.kadena.request({
+            method: "kda_requestAccount",
+            networkId: netId,
+            domain: window.location.hostname,
+          });
+          if (accountConnectedRes?.status !== "success") {
+            toast.error("X Wallet connection was lost, please re-connect");
+            clearTransaction();
+            logoutAccount();
+            return;
+          }
           await window.kadena.request({
             method: "kda_disconnect",
             networkId: netId,
@@ -139,6 +166,8 @@ export const PactContextProvider = ({ children }) => {
         } catch (e) {
           console.log(e);
           toast.error("Couldn't connect to Xwallet");
+          clearTransaction();
+          return;
         }
       }
       setIsXwallet(isXwallet);
@@ -226,10 +255,16 @@ export const PactContextProvider = ({ children }) => {
     });
     while (time_spent_polling_s < 240) {
       await wait(POLL_INTERVAL_S * 1000);
-      pollRes = await Pact.fetch.poll(
-        { requestKeys: [requestKey] },
-        networkUrl
-      );
+      try {
+        pollRes = await Pact.fetch.poll(
+          { requestKeys: [requestKey] },
+          networkUrl
+        );
+      } catch (e) {
+        console.log(e);
+        toast.error("Had trouble getting transaction update, will try again");
+        continue;
+      }
       if (Object.keys(pollRes).length !== 0) {
         break;
       }

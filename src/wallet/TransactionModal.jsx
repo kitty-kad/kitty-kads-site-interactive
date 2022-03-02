@@ -69,7 +69,7 @@ function getTitleBodyAction(pactContext) {
     body = transactionState.previewComponent;
   } else if (transactionState.signingCmd != null) {
     title = "Signing transaction";
-    body = "Check you wallet to sign the transaction";
+    body = "Check your wallet to sign the transaction";
   } else if (transactionState.signedCmd != null) {
     title = "Submitting the transaction";
   } else {

@@ -33,7 +33,7 @@ export default function TransactionModal(props) {
     const tempAccount = await fetchAccountDetails(accountName);
     if (tempAccount == null) {
       setFetchedAccountMessage(
-        `That address was not found on chain ${chainId}`
+        `That address was not found on chain ${chainId}. Make sure you sent coins there at some point`
       );
     } else {
       setLocalAccount(tempAccount);
