@@ -64,9 +64,20 @@ export const PactContextProvider = ({ children }) => {
   const signTransaction = async (cmdToSign) => {
     updateTransactionState({ signingCmd: cmdToSign });
     let signedCmd = null;
-    if (window?.kadena?.request != null) {
+    if (isXwallet) {
       let xwalletSignRes = null;
       try {
+        const accountConnectedRes = await window.kadena.request({
+          method: "kda_requestAccount",
+          networkId: netId,
+          domain: window.location.hostname,
+        });
+        if (accountConnectedRes?.status !== "success") {
+          toast.error("X Wallet connection was lost, please re-connect");
+          clearTransaction();
+          logoutAccount();
+          return;
+        }
         xwalletSignRes = await window.kadena.request({
           method: "kda_requestSign",
           networkId: netId,
@@ -83,6 +94,7 @@ export const PactContextProvider = ({ children }) => {
       signedCmd = xwalletSignRes.signedCmd;
     } else {
       try {
+        alert("HERE");
         signedCmd = await Pact.wallet.sign(cmdToSign);
       } catch (e) {
         console.log(e);
@@ -91,6 +103,8 @@ export const PactContextProvider = ({ children }) => {
         return;
       }
     }
+    console.log(signedCmd);
+    return;
 
     updateTransactionState({ signedCmd });
     let localRes = null;
@@ -144,17 +158,6 @@ export const PactContextProvider = ({ children }) => {
     if (account != null) {
       if (isXwallet) {
         try {
-          const accountConnectedRes = await window.kadena.request({
-            method: "kda_requestAccount",
-            networkId: netId,
-            domain: window.location.hostname,
-          });
-          if (accountConnectedRes?.status !== "success") {
-            toast.error("X Wallet connection was lost, please re-connect");
-            clearTransaction();
-            logoutAccount();
-            return;
-          }
           await window.kadena.request({
             method: "kda_disconnect",
             networkId: netId,
@@ -191,7 +194,7 @@ export const PactContextProvider = ({ children }) => {
   };
 
   const logoutAccount = async () => {
-    if (window?.kadena?.request != null) {
+    if (isXwallet) {
       await window.kadena.request({
         method: "kda_disconnect",
         networkId: netId,
