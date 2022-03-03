@@ -212,16 +212,21 @@ export const PactContextProvider = ({ children }) => {
     return Pact.lang.mkMeta("", chainId, gasPrice, 50000, creationTime(), 600);
   };
 
-  const readFromContract = async (cmd) => {
+  const readFromContract = async (cmd, returnError) => {
     try {
       let data = await Pact.fetch.local(cmd, networkUrl);
-      if (data.result.status === "success") {
+      if (data?.result?.status === "success") {
         return data.result.data;
       } else {
         console.log(data);
-        return null;
+        if (returnError === true) {
+          return data?.result?.error?.message;
+        } else {
+          return null;
+        }
       }
     } catch (e) {
+      toast.error("Had trouble fetching data from the blockchain");
       console.log(e);
     }
     return null;

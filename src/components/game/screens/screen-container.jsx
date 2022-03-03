@@ -6,6 +6,7 @@ import {
   useGetMyKitties,
   useGetAllKitties,
   useAdoptKitties,
+  useCheckIfOnWl,
 } from "../pact-functions";
 import { getImagesForIds } from "../server";
 import { PactContext } from "../../../wallet/pact-wallet";
@@ -84,19 +85,82 @@ function MyKitties() {
 }
 
 function AdoptKitties() {
+  const ADOPT_FOR_ALL = true;
+  const [wlResponse, setWlResponse] = useState(null);
   const { account } = useContext(PactContext);
   const hasAccount = account?.account != null;
+  const checkWlRole = useCheckIfOnWl();
+
+  useEffect(() => {
+    if (account?.account == null) {
+      return;
+    }
+    const fetchKitties = async () => {
+      const wlNetworkResponse = await checkWlRole();
+      if (wlNetworkResponse === true) {
+        setWlResponse(true);
+      } else if (wlNetworkResponse === "Only premium WL members allowed") {
+        setWlResponse("PREMIUM");
+      } else if (
+        wlNetworkResponse === "Only secondary and premium WL members allowed"
+      ) {
+        setWlResponse("SECONDARY");
+      }
+    };
+    fetchKitties();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [account]);
+
+  let content = null;
+  if (!ADOPT_FOR_ALL) {
+    content = (
+      <>
+        <p>
+          Adopting is currently not active while prize winners are getting their
+          kitties
+        </p>
+        <p>
+          Please follow for updates on Twitter or Discord for when it'll open up
+        </p>
+      </>
+    );
+  } else if (!hasAccount) {
+    content = (
+      <>
+        <p>Can't adopt without a wallet!</p>
+        <ConnectWalletText />
+      </>
+    );
+  } else if (wlResponse !== true) {
+    if (wlResponse === "PREMIUM") {
+      content = (
+        <>
+          <p>Adopting is only enabled for premium WL members for now</p>{" "}
+          <p>
+            Please follow for updates on Twitter or Discord for when it'll be
+            open to more people
+          </p>
+        </>
+      );
+    } else if (wlResponse === "SECONDARY") {
+      content = (
+        <>
+          <p>Adopting is only enabled for premium and secondary WL members</p>{" "}
+          <p>
+            Please follow for updates on Twitter or Discord for when it'll open
+            to all people
+          </p>
+        </>
+      );
+    } else {
+      content = <p>Checking WL status...</p>;
+    }
+  } else {
+    content = <AdoptKittiesInteraction />;
+  }
   return (
     <KittyGuideWithContent>
-      <div>
-        {!hasAccount && (
-          <>
-            <p>Can't adopt without a wallet!</p>
-            <ConnectWalletText />
-          </>
-        )}
-      </div>
-      {hasAccount && <AdoptKittiesInteraction />}
+      <div>{content}</div>
     </KittyGuideWithContent>
   );
 }
