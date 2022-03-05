@@ -176,7 +176,6 @@ export const PactContextProvider = ({ children }) => {
           const res = await window.kadena.request({
             method: "kda_connect",
             networkId: netId,
-            icon: iconUrl,
           });
           console.log(res);
           if (res.status !== "success") {
