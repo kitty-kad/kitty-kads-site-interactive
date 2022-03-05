@@ -172,14 +172,38 @@ export const PactContextProvider = ({ children }) => {
             method: "kda_disconnect",
             networkId: netId,
           });
-          await window.kadena.request({
+          const iconUrl = `${window.location.hostname}/img/kittykad.png`;
+          const res = await window.kadena.request({
             method: "kda_connect",
             networkId: netId,
+            icon: iconUrl,
           });
+          console.log(res);
+          if (res.status !== "success") {
+            console.log(res.message);
+            toast.error(
+              `Could not connect to X Wallet. Make sure your wallet is logged in on Chain 1`
+            );
+            closeConnectWallet();
+            return;
+          }
+          if (res.account?.account !== account.account) {
+            toast.error(
+              "Tried to connect to X Wallet but not with the account entered. Make sure you have logged into the right account in X Wallet"
+            );
+            closeConnectWallet();
+            return;
+          }
+          if (res.account?.chainId !== chainId) {
+            toast.error(`You need to select chain ${chainId} from X Wallet`);
+            closeConnectWallet();
+            return;
+          }
         } catch (e) {
           console.log(e);
           toast.error("Couldn't connect to Xwallet");
-          clearTransaction();
+          closeConnectWallet();
+
           return;
         }
       }
