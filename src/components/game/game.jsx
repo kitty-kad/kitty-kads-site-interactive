@@ -1,6 +1,10 @@
 import { useEffect, useContext, useState } from "react";
 import useWindowSize from "../../hooks/useWindowSize";
-import { PactContext, TEST_NET_ID } from "../../wallet/pact-wallet";
+import {
+  PactContext,
+  TEST_NET_ID,
+  MAIN_NET_ID,
+} from "../../wallet/pact-wallet";
 import SideMenu from "./side-menu/side-menu";
 import ScreenContainer from "./screens/screen-container";
 import MobileScreen from "./screens/mobile-screen";
@@ -13,7 +17,8 @@ export const Header = (props) => {
   const { useSetNetworkSettings } = useContext(PactContext);
   const windowSize = useWindowSize();
 
-  useSetNetworkSettings(TEST_NET_ID, "1");
+  // useSetNetworkSettings(TEST_NET_ID, "1");
+  useSetNetworkSettings(MAIN_NET_ID, "1");
 
   return (
     <header id="header">

@@ -8,8 +8,10 @@ const ADOPT_FUNC = "adopt-gen-0s-bulk";
 const OWNED_BY_FUNC = "kitties-owned-by";
 const ALL_IDS_FUNC = "all-kitties";
 const WL_ROLE_FUNC = "enforce-adopt-wl-role";
-const ADMIN_ADDRESS =
-  "k:fd91af358418e2c8e50a501451a41de49af01f45e34bc4f1735cab293084f7ea";
+// export const ADMIN_ADDRESS =
+//   "k:fd91af358418e2c8e50a501451a41de49af01f45e34bc4f1735cab293084f7ea";
+export const ADMIN_ADDRESS =
+  "k:f7278eeaa55a4b52c281fa694035f82a43a6711eb547fc1ab900be1ccf9fb409";
 
 function useGetMyKitties() {
   const { account, readFromContract, defaultMeta } = useContext(PactContext);
