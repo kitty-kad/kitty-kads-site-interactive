@@ -180,10 +180,7 @@ export const PactContextProvider = ({ children }) => {
           });
           console.log(res);
           if (res.status !== "success") {
-            console.log(res.message);
-            toast.error(
-              `Could not connect to X Wallet. Make sure your wallet is logged in on Chain 1`
-            );
+            toast.error(`Could not connect to X Wallet`);
             closeConnectWallet();
             return;
           }

@@ -114,7 +114,7 @@ function AdoptKitties() {
   }, [account]);
 
   let content = null;
-  if (!ADOPT_FOR_ALL && account.account !== ADMIN_ADDRESS) {
+  if (!ADOPT_FOR_ALL && account?.account !== ADMIN_ADDRESS) {
     content = (
       <>
         <p>
@@ -272,9 +272,7 @@ function AllKitties() {
   useEffect(() => {
     const fetchKitties = async () => {
       const kittyIds = await getAllKitties();
-      console.log(kittyIds);
       const images = await getImagesForIds(kittyIds);
-      console.log(images);
       setAllKitties(images);
     };
     fetchKitties();
