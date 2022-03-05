@@ -172,7 +172,6 @@ export const PactContextProvider = ({ children }) => {
             method: "kda_disconnect",
             networkId: netId,
           });
-          const iconUrl = `${window.location.hostname}/img/kittykad.png`;
           const res = await window.kadena.request({
             method: "kda_connect",
             networkId: netId,
