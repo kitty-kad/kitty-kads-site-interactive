@@ -6,7 +6,6 @@ import "react-toastify/dist/ReactToastify.css";
 import TransactionModal from "./TransactionModal";
 import ConnectWalletModal from "./ConnectWalletModal";
 import Pact from "pact-lang-api";
-import { css } from "@emotion/react";
 
 export const PactContext = createContext();
 export const DEFAULT_GAS_PRICE = 0.000001;
@@ -27,6 +26,7 @@ export const PactContextProvider = ({ children }) => {
   const [currTransactionState, setCurrTransactionState] = useState({});
   const [isConnectWallet, setIsConnectWallet] = useState(false);
   const [isXwallet, setIsXwallet] = useState(tryLoadLocal(IS_X_WALLET_KEY));
+  console.log(isXwallet);
 
   /* HELPER HOOKS */
   useEffect(() => {
@@ -79,6 +79,16 @@ export const PactContextProvider = ({ children }) => {
           toast.error("X Wallet connection was lost, please re-connect");
           clearTransaction();
           logoutAccount();
+          return;
+        } else if (accountConnectedRes?.wallet?.account !== account.account) {
+          toast.error(
+            `Wrong X Wallet account selected in extension, please select ${account.account}`
+          );
+          return;
+        } else if (accountConnectedRes?.wallet?.chainId !== chainId) {
+          toast.error(
+            `Wrong chain selected in X Wallet, please select ${chainId}`
+          );
           return;
         }
         xwalletSignRes = await window.kadena.request({

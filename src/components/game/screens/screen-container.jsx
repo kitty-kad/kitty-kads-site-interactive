@@ -7,6 +7,7 @@ import {
   useGetAllKitties,
   useAdoptKitties,
   useCheckIfOnWl,
+  useAmountLeftToAdopt,
 } from "../pact-functions";
 import { getImagesForIds } from "../server";
 import { PactContext } from "../../../wallet/pact-wallet";
@@ -167,12 +168,11 @@ function AdoptKitties() {
 
 function AdoptKittiesInteraction() {
   const adoptKitties = useAdoptKitties();
+  const amountLeftToAdopt = useAmountLeftToAdopt();
   const [amountToAdopt, setAmountToAdopt] = useState(1);
   const { pricePerKitty, setCurrScreen } = useContext(GameContext);
 
-  const amountLeft = 100;
-
-  if (amountLeft === 0) {
+  if (amountLeftToAdopt === 0) {
     return (
       <div>
         <p>The current batch of kitties has been adopted.</p>
@@ -182,14 +182,15 @@ function AdoptKittiesInteraction() {
   }
 
   let errorMessage = null;
-  if (amountLeft === 0) {
-    errorMessage = "";
-  } else if (amountToAdopt < 1) {
+  if (amountToAdopt < 1) {
     errorMessage = "*** You must adopt more than 0 kitties ***";
-  } else if (amountLeft - amountToAdopt < 0) {
-    errorMessage = `*** Only ${amountLeft} kitt${
-      amountLeft === 1 ? "y" : "ies"
-    } left available to adopt ***`;
+  } else if (
+    amountLeftToAdopt != null &&
+    amountLeftToAdopt - amountToAdopt < 0
+  ) {
+    errorMessage = `*** Only ${amountLeftToAdopt} kitt${
+      amountLeftToAdopt === 1 ? "y" : "ies"
+    } left available to adopt. More kitties will be put up soon ***`;
   }
 
   const disabled = errorMessage != null;

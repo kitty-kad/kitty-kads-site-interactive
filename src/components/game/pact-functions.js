@@ -1,5 +1,5 @@
 import Pact from "pact-lang-api";
-import { useContext, useCallback } from "react";
+import { useContext, useState, useEffect } from "react";
 import { PactContext } from "../../wallet/pact-wallet";
 import { GameContext } from "./game-context";
 
@@ -91,4 +91,29 @@ function useCheckIfOnWl() {
   };
 }
 
-export { useGetMyKitties, useGetAllKitties, useAdoptKitties, useCheckIfOnWl };
+function useAmountLeftToAdopt() {
+  const { readFromContract, defaultMeta } = useContext(PactContext);
+  const [amountLeftToAdopt, setAmountLeftToAdopt] = useState(null);
+  useEffect(() => {
+    const fetch = async () => {
+      const pactCode = `( -    
+      (free.${KITTY_KADS_CONTRACT}.get-count "kitties-created-to-adopt-count-key")
+      (free.${KITTY_KADS_CONTRACT}.get-count "kitties-adopted-count-key")
+    )`;
+      const meta = defaultMeta();
+      const left = await readFromContract({ pactCode, meta }, true);
+      setAmountLeftToAdopt(left);
+    };
+    fetch();
+  }, []);
+
+  return amountLeftToAdopt;
+}
+
+export {
+  useGetMyKitties,
+  useGetAllKitties,
+  useAdoptKitties,
+  useCheckIfOnWl,
+  useAmountLeftToAdopt,
+};
