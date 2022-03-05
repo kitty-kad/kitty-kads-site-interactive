@@ -24,15 +24,15 @@
             "text": "To prevent artifical price hikes, a 3% trade fee will be taken from all sales"
         },
         {
-            "name": "Birthing Costs",
-            "text": "To help set a floor price, a 0.5KDA fee will be applied whenever two kitties are bred"
+            "name": "Breeding",
+            "text": "To help set a floor price, a 1KDA fee will be applied whenever two kitties are bred"
         },
         {
             "name": "Pimp Your Kitties",
             "text": "Earn money by letting others breed with your prestigious kitties to get its genes"
         },
         {
-            "name": "Birthing Cooldown",
+            "name": "Cooldowns",
             "text": "Earlier generation breed faster, however different genes also impact cooldowns"
         }
     ],
