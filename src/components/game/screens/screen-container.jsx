@@ -87,7 +87,7 @@ function MyKitties() {
 }
 
 function AdoptKitties() {
-  const ADOPT_FOR_ALL = false;
+  const ADOPT_FOR_ALL = true;
   const [wlResponse, setWlResponse] = useState(null);
   const { account } = useContext(PactContext);
   const hasAccount = account?.account != null;
@@ -322,6 +322,7 @@ function KittiesList({ kitties, loading, empty, header }) {
             return (
               <KittyCard
                 key={kitty.id}
+                id={kitty.id}
                 number={parseInt(kitty.id.split(":")[1]) + 1}
                 traits={kitty.traits}
                 genes={kitty.genes}
@@ -336,7 +337,7 @@ function KittiesList({ kitties, loading, empty, header }) {
   );
 }
 
-function KittyCard({ base64, number, traits, genes, items, imgStyle }) {
+function KittyCard({ id, base64, number, traits, genes, items, imgStyle }) {
   return (
     <div
       style={{
