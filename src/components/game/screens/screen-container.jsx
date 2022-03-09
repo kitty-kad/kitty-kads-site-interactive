@@ -137,7 +137,10 @@ function AdoptKitties() {
     if (wlResponse === "PREMIUM") {
       content = (
         <>
-          <p>Adopting is only enabled for premium WL members for now</p>{" "}
+          <p>
+            From 11pm GMT, premium members can start adopting. Adopting is only
+            enabled for premium WL members for now
+          </p>{" "}
           <p>
             Please follow for updates on Twitter or Discord for when it'll be
             open to more people
