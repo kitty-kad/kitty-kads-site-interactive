@@ -8,7 +8,7 @@ import ConnectWalletModal from "./ConnectWalletModal";
 import Pact from "pact-lang-api";
 
 export const PactContext = createContext();
-export const DEFAULT_GAS_PRICE = 0.000001;
+export const DEFAULT_GAS_PRICE = 0.00000001;
 export const MAIN_NET_ID = "mainnet01";
 export const TEST_NET_ID = "testnet04";
 
@@ -281,16 +281,24 @@ export const PactContextProvider = ({ children }) => {
     let time_spent_polling_s = 0;
     let pollRes = null;
     const { transactionMessage } = currTransactionState;
-    let waitingText = `Waiting ${POLL_INTERVAL_S}s for transaction ${requestKey.slice(
-      0,
-      10
-    )}... (${transactionMessage})`;
+    let waitingText = (
+      <span
+        onClick={() =>
+          window.open(
+            `https://explorer.chainweb.com/mainnet/txdetail/${requestKey}`,
+            "_blank"
+          )
+        }
+      >
+        {`Waiting ${POLL_INTERVAL_S}s for transaction ${requestKey.slice(0, 10)}
+        ... (${transactionMessage})`}
+      </span>
+    );
     toast.info(waitingText, {
       position: "top-right",
+      autoClose: 10000,
       hideProgressBar: false,
-      closeOnClick: true,
       draggable: true,
-      autoClose: false,
       toastId: requestKey,
     });
     while (time_spent_polling_s < 240) {
