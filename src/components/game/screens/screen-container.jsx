@@ -87,7 +87,7 @@ function MyKitties() {
 }
 
 function AdoptKitties() {
-  const ADOPT_FOR_ALL = false;
+  const ADOPT_FOR_ALL = true;
   const [wlResponse, setWlResponse] = useState(null);
   const { account } = useContext(PactContext);
   const hasAccount = account?.account != null;
@@ -117,13 +117,8 @@ function AdoptKitties() {
   if (!ADOPT_FOR_ALL && account?.account !== ADMIN_ADDRESS) {
     content = (
       <>
-        <p>
-          Adopting is currently not active while prize winners are getting their
-          kitties
-        </p>
-        <p>
-          Please follow for updates on Twitter or Discord for when it'll open up
-        </p>
+        <p>Adopting will be open for WL members around 3pm PST</p>
+        <p>Please follow for updates on Twitter or Discord</p>
       </>
     );
   } else if (!hasAccount) {
@@ -138,8 +133,8 @@ function AdoptKitties() {
       content = (
         <>
           <p>
-            From 11pm GMT, premium members can start adopting. Adopting is only
-            enabled for premium WL members for now
+            From 9 March 11pm GMT, premium members can start adopting. Adopting
+            is only enabled for premium WL members for now
           </p>{" "}
           <p>
             Please follow for updates on Twitter or Discord for when it'll be
