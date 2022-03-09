@@ -87,7 +87,7 @@ function MyKitties() {
 }
 
 function AdoptKitties() {
-  const ADOPT_FOR_ALL = true;
+  const ADOPT_FOR_ALL = false;
   const [wlResponse, setWlResponse] = useState(null);
   const { account } = useContext(PactContext);
   const hasAccount = account?.account != null;
