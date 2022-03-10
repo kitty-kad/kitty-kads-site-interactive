@@ -401,7 +401,7 @@ function KittiesList({
                     Previous
                   </p>
                 )}
-                {page !== pages && (
+                {page !== pages - 1 && (
                   <p
                     style={{ cursor: "pointer", textDecoration: "underline" }}
                     onClick={() => {
