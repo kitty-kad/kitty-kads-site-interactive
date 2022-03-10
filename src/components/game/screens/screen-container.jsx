@@ -265,24 +265,69 @@ function AdoptKittiesInteraction() {
 }
 
 function AllKitties() {
+  const PAGE_SIZE = 100;
+  const [pages, setPages] = useState(null);
+  const [page, setPage] = useState(0);
   const getAllKitties = useGetAllKitties();
-  const { allKitties, setAllKitties } = useContext(GameContext);
+  const { allKitties, setAllKitties, allIds, setAllIds } =
+    useContext(GameContext);
+
   useEffect(() => {
     const fetchKitties = async () => {
       const kittyIds = await getAllKitties();
-      const images = await getImagesForIds(kittyIds);
-      setAllKitties(images);
+      // Kitties on pages should go from 1 -> N, lets sort them this way
+      kittyIds.sort(
+        (id1, id2) => parseInt(id1.split(":")[1]) - parseInt(id2.split(":")[1])
+      );
+      const pagesCount = Math.ceil(kittyIds.length / PAGE_SIZE);
+      const kittyIdsArr = [];
+      const allKittiesArr = [];
+      for (let i = 0; i < pagesCount; i++) {
+        allKittiesArr.push(null);
+        kittyIdsArr.push(kittyIds.slice(i * PAGE_SIZE, (i + 1) * PAGE_SIZE));
+      }
+      setPages(pagesCount);
+      setAllIds(kittyIdsArr);
+      setAllKitties(allKittiesArr);
+      // const images = await getImagesForIds(kittyIds);
+      // setAllKitties(images);
     };
     fetchKitties();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const amount = allKitties?.length ?? 0;
+  useEffect(() => {
+    // Not ready to start fetching kitties
+    if (
+      allIds == null ||
+      allIds.length === 0 ||
+      allKitties == null ||
+      allKitties.length === 0
+    ) {
+      return;
+    }
+    const fetchAndSaveImages = async (index, allKitties, allIds) => {
+      const idsToFetch = allIds[index];
+      const images = await getImagesForIds(idsToFetch);
+      allKitties = [...allKitties];
+      allKitties[index] = images;
+      setAllKitties(allKitties);
+    };
+    if (allKitties[page] == null) {
+      fetchAndSaveImages(page, allKitties, allIds);
+    }
+  }, [page, allIds, setAllIds, allKitties, setAllKitties]);
+
+  const amount = allIds?.reduce((total, curr) => curr.length + total, 0) ?? 0;
+
   return (
     <CenterColumn>
       <KittiesList
-        kitties={allKitties}
-        loading={<Loading text="Gathering all the kitties..." />}
+        pages={pages}
+        page={page}
+        setPage={setPage}
+        kitties={(allKitties?.length > 0 && allKitties[page]) || null}
+        loading={<Loading text="Fetching kitties..." />}
         empty={<p style={{ textAlign: "center" }}>No kitties exist yet :O</p>}
         header={`${amount} ${kittiesStr(amount)} adopted around the world`}
       />
@@ -290,7 +335,15 @@ function AllKitties() {
   );
 }
 
-function KittiesList({ kitties, loading, empty, header }) {
+function KittiesList({
+  kitties,
+  loading,
+  empty,
+  header,
+  pages,
+  page,
+  setPage,
+}) {
   const hasKitties = kitties != null && kitties.length > 0;
   const extraStyle = { overflowY: "scroll" };
   if (hasKitties === true) {
@@ -313,23 +366,55 @@ function KittiesList({ kitties, loading, empty, header }) {
           flexWrap: "wrap",
         }}
       >
-        {kitties === null && loading}
+        {kitties == null && loading}
         {kitties?.length === 0 && empty}
-        {kitties != null &&
-          kitties.map((kitty) => {
-            return (
-              <KittyCard
-                key={kitty.id}
-                id={kitty.id}
-                number={parseInt(kitty.id.split(":")[1]) + 1}
-                traits={kitty.traits}
-                genes={kitty.genes}
-                items={kitty.items}
-                base64={kitty.base64}
-                imgStyle={smallKittyStyle}
-              />
-            );
-          })}
+        {kitties != null && (
+          <>
+            {kitties.map((kitty) => {
+              return (
+                <KittyCard
+                  key={kitty.id}
+                  id={kitty.id}
+                  number={parseInt(kitty.id.split(":")[1]) + 1}
+                  traits={kitty.traits}
+                  genes={kitty.genes}
+                  items={kitty.items}
+                  base64={kitty.base64}
+                  imgStyle={smallKittyStyle}
+                />
+              );
+            })}
+            {pages != null && page != null && setPage != null && (
+              <CenterColumn
+                extraStyle={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                }}
+              >
+                {page !== 0 && (
+                  <p
+                    style={{ cursor: "pointer", textDecoration: "underline" }}
+                    onClick={() => {
+                      setPage(page - 1);
+                    }}
+                  >
+                    Previous
+                  </p>
+                )}
+                {page !== pages && (
+                  <p
+                    style={{ cursor: "pointer", textDecoration: "underline" }}
+                    onClick={() => {
+                      setPage(page + 1);
+                    }}
+                  >
+                    Next
+                  </p>
+                )}
+              </CenterColumn>
+            )}
+          </>
+        )}
       </div>
     </CenterColumn>
   );

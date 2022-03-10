@@ -14,6 +14,7 @@ export function GameContextProvider({ children }) {
   const [currScreen, setCurrScreen] = useState(null);
   const [myKitties, setMyKitties] = useState(null);
   const [allKitties, setAllKitties] = useState(null);
+  const [allIds, setAllIds] = useState(null);
   const { account } = useContext(PactContext);
   const pricePerKitty = 1;
 
@@ -32,6 +33,8 @@ export function GameContextProvider({ children }) {
       allKitties,
       setAllKitties,
       pricePerKitty,
+      allIds,
+      setAllIds,
       calculateKittiesPrice: (amount) => {
         return Math.round(pricePerKitty * amount * 100) / 100;
       },
@@ -44,6 +47,8 @@ export function GameContextProvider({ children }) {
     allKitties,
     setAllKitties,
     pricePerKitty,
+    allIds,
+    setAllIds,
   ]);
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
