@@ -238,7 +238,7 @@ export const PactContextProvider = ({ children }) => {
   };
 
   const defaultMeta = () => {
-    return Pact.lang.mkMeta("", chainId, gasPrice, 50000, creationTime(), 600);
+    return Pact.lang.mkMeta("", chainId, gasPrice, 150000, creationTime(), 600);
   };
 
   const readFromContract = async (cmd, returnError) => {
