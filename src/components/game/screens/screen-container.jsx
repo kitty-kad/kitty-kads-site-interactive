@@ -384,39 +384,68 @@ function KittiesList({
                 />
               );
             })}
-            {pages != null && page != null && setPage != null && (
-              <CenterColumn
-                extraStyle={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                }}
-              >
-                {page !== 0 && (
-                  <p
-                    style={{ cursor: "pointer", textDecoration: "underline" }}
-                    onClick={() => {
-                      setPage(page - 1);
-                    }}
-                  >
-                    Previous
-                  </p>
-                )}
-                {page !== pages - 1 && (
-                  <p
-                    style={{ cursor: "pointer", textDecoration: "underline" }}
-                    onClick={() => {
-                      setPage(page + 1);
-                    }}
-                  >
-                    Next
-                  </p>
-                )}
-              </CenterColumn>
-            )}
+            <ListNav pages={pages} page={page} setPage={setPage} />
           </>
         )}
       </div>
     </CenterColumn>
+  );
+}
+
+function ListNav({ pages, page, setPage }) {
+  if (pages == null || page == null || setPage == null) {
+    return null;
+  }
+  const pagesArr = [1];
+  const start = Math.max(page + 1 - 3, 2);
+  const end = Math.min(page + 1 + 4, pages);
+  for (let i = start; i < end; i++) {
+    pagesArr.push(i);
+  }
+  pagesArr.push(pages);
+
+  const navButtons = [];
+  for (let i = 0; i < pagesArr.length; i++) {
+    const curr = pagesArr[i];
+    if (
+      (i === 1 && curr !== 2) ||
+      (i === pagesArr.length - 2 && curr !== pages - 1)
+    ) {
+      navButtons.push(<p>...</p>);
+    } else {
+      navButtons.push(
+        <NavButton
+          text={curr}
+          isSelected={page + 1 === curr}
+          onClick={() => setPage(curr - 1)}
+        />
+      );
+    }
+  }
+
+  return (
+    <CenterColumn
+      extraStyle={{
+        flexDirection: "row",
+        justifyContent: "center",
+      }}
+    >
+      {navButtons.map((button) => button)}
+    </CenterColumn>
+  );
+}
+
+function NavButton({ text, onClick, isSelected }) {
+  const style = { cursor: "pointer" };
+  if (isSelected === true) {
+    style.fontWeight = "bold";
+  } else {
+    style.textDecoration = "underline";
+  }
+  return (
+    <p style={style} onClick={onClick}>
+      {text}
+    </p>
   );
 }
 
@@ -432,8 +461,9 @@ function KittyCard({ id, base64, number, traits, genes, items, imgStyle }) {
         minWidth: 200,
         padding: "10 0",
       }}
-      onClick={() =>
-        navigator.clipboard.writeText(JSON.stringify([genes, items]))
+      onClick={
+        // () => navigator.clipboard.writeText(base64)
+        () => navigator.clipboard.writeText(JSON.stringify([genes, items]))
       }
     >
       <p style={{ fontSize: "1.5em", padding: 0, margin: 0 }}>#{number}</p>
