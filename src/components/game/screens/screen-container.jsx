@@ -117,7 +117,7 @@ function AdoptKitties() {
   if (!ADOPT_FOR_ALL && account?.account !== ADMIN_ADDRESS) {
     content = (
       <>
-        <p>Adopting will be open for WL members around 3pm PST</p>
+        <p>Adopting will be open to the public on the 26th of March</p>
         <p>Please follow for updates on Twitter or Discord</p>
       </>
     );
