@@ -172,6 +172,10 @@ export const PactContextProvider = ({ children }) => {
             method: "kda_disconnect",
             networkId: netId,
           });
+          await window.kadena.request({
+            method: "kda_connect",
+            networkId: netId,
+          });
           const res = await window.kadena.request({
             method: "kda_connect",
             networkId: netId,
