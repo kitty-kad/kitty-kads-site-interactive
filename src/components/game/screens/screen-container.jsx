@@ -114,7 +114,16 @@ function AdoptKitties() {
   }, [account]);
 
   let content = null;
-  if (!ADOPT_FOR_ALL && account?.account !== ADMIN_ADDRESS) {
+  if (
+    account?.account ===
+    "k:e756c255d9f8348d3838f3cdadbabc1a0820f5023fa8d98873e0624e3a1904f5"
+  ) {
+    content = (
+      <>
+        <p>Due to high demand, minting may be temporary restricted</p>
+      </>
+    );
+  } else if (!ADOPT_FOR_ALL && account?.account !== ADMIN_ADDRESS) {
     content = (
       <>
         <p>Public minting starts around 5pm UTC today! (10am PST)</p>
