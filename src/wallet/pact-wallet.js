@@ -180,7 +180,6 @@ export const PactContextProvider = ({ children }) => {
             method: "kda_connect",
             networkId: netId,
           });
-          console.log(res);
           if (res.status !== "success") {
             toast.error(`Could not connect to X Wallet`);
             closeConnectWallet();
