@@ -113,60 +113,13 @@ function AdoptKitties() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [account]);
 
-  let content = null;
-  if (
-    account?.account ===
-    "k:e756c255d9f8348d3838f3cdadbabc1a0820f5023fa8d98873e0624e3a1904f5"
-  ) {
-    content = (
-      <>
-        <p>Due to high demand, minting may be temporary restricted</p>
-      </>
-    );
-  } else if (!ADOPT_FOR_ALL && account?.account !== ADMIN_ADDRESS) {
-    content = (
-      <>
-        <p>Public minting starts around 5pm UTC today! (10am PST)</p>
-        <p>Please follow for updates on Twitter or Discord</p>
-      </>
-    );
-  } else if (!hasAccount) {
-    content = (
-      <>
-        <p>Can't adopt without a wallet!</p>
-        <ConnectWalletText />
-      </>
-    );
-  } else if (wlResponse !== true) {
-    if (wlResponse === "PREMIUM") {
-      content = (
-        <>
-          <p>
-            From 9 March 11pm GMT, premium members can start adopting. Adopting
-            is only enabled for premium WL members for now
-          </p>{" "}
-          <p>
-            Please follow for updates on Twitter or Discord for when it'll be
-            open to more people
-          </p>
-        </>
-      );
-    } else if (wlResponse === "SECONDARY") {
-      content = (
-        <>
-          <p>Adopting is only enabled for premium and secondary WL members</p>{" "}
-          <p>
-            Please follow for updates on Twitter or Discord for when it'll open
-            to all people
-          </p>
-        </>
-      );
-    } else {
-      content = <p>Checking WL status...</p>;
-    }
-  } else {
-    content = <AdoptKittiesInteraction />;
-  }
+  const content = (
+    <>
+      <p> Current sale is all sold out :O</p>
+      <p>Final 5,000 Gen 0s will be live after the Kitty Kad token launches.</p>
+    </>
+  );
+
   return (
     <KittyGuideWithContent>
       <div>{content}</div>
