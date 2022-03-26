@@ -183,8 +183,10 @@ function AdoptKittiesInteraction() {
   if (amountLeftToAdopt === 0) {
     return (
       <div>
-        <p>The current batch of kitties has been adopted.</p>
-        <p> More will be put up soon.</p>
+        <p> Current sale is all sold out</p>
+        <p>
+          Final 5,000 Gen 0s will be live after the Kitty Kad token launches.
+        </p>
       </div>
     );
   }
