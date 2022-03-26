@@ -175,7 +175,7 @@ function AdoptKittiesInteraction() {
     return (
       <div>
         <p>The current batch of kitties has been adopted.</p>
-        <p>Please check tomorrow for more kitties.</p>
+        <p> More will be put up soon.</p>
       </div>
     );
   }
