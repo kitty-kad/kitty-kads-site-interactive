@@ -116,7 +116,7 @@ function AdoptKitties() {
   const content = (
     <>
       <p> Current sale is all sold out :O</p>
-      <p>Final 5,000 Gen 0s will be live after the Kitty Kad token launches.</p>
+      <p>Final 5,000 Gen 0s will be live on the 23rd of April.</p>
     </>
   );
 
