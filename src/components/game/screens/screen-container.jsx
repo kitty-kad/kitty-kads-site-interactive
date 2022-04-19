@@ -6,12 +6,14 @@ import {
   useGetMyKitties,
   useGetAllKitties,
   useAdoptKitties,
-  useCheckIfOnWl,
   useAmountLeftToAdopt,
   ADMIN_ADDRESS,
 } from "../pact-functions";
 import { getImagesForIds } from "../server";
 import { PactContext } from "../../../wallet/pact-wallet";
+
+const HELPER_ADDRESS =
+  "k:1de196801c03efa9fa98fb2e5e945f899dda7174eb490ccd3bcfe60789e6250d";
 export default function ScreenContainer(props) {
   const { currScreen } = useContext(GameContext);
   return (
@@ -87,38 +89,32 @@ function MyKitties() {
 }
 
 function AdoptKitties() {
-  const ADOPT_FOR_ALL = true;
-  const [wlResponse, setWlResponse] = useState(null);
+  const ADOPT_FOR_ALL = false;
   const { account } = useContext(PactContext);
   const hasAccount = account?.account != null;
-  const checkWlRole = useCheckIfOnWl();
 
-  useEffect(() => {
-    if (account?.account == null) {
-      return;
-    }
-    const fetchKitties = async () => {
-      const wlNetworkResponse = await checkWlRole();
-      if (wlNetworkResponse === true) {
-        setWlResponse(true);
-      } else if (wlNetworkResponse === "Only premium WL members allowed") {
-        setWlResponse("PREMIUM");
-      } else if (
-        wlNetworkResponse === "Only secondary and premium WL members allowed"
-      ) {
-        setWlResponse("SECONDARY");
-      }
-    };
-    fetchKitties();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [account]);
-
-  const content = (
-    <>
-      <p> Current sale is all sold out :O</p>
-      <p>Final 5,000 Gen 0s will be live on the 23rd of April.</p>
-    </>
-  );
+  let content = null;
+  if (
+    !ADOPT_FOR_ALL &&
+    account?.account !== ADMIN_ADDRESS &&
+    account?.account !== HELPER_ADDRESS
+  ) {
+    content = (
+      <>
+        <p> Current sale is all sold out :O</p>
+        <p>Final 5,000 Gen 0s will be live on the 23rd of April.</p>
+      </>
+    );
+  } else if (!hasAccount) {
+    content = (
+      <>
+        <p>Can't adopt without a wallet!</p>
+        <ConnectWalletText />
+      </>
+    );
+  } else {
+    content = <AdoptKittiesInteraction />;
+  }
 
   return (
     <KittyGuideWithContent>
@@ -136,10 +132,8 @@ function AdoptKittiesInteraction() {
   if (amountLeftToAdopt === 0) {
     return (
       <div>
-        <p> Current sale is all sold out</p>
-        <p>
-          Final 5,000 Gen 0s will be live after the Kitty Kad token launches.
-        </p>
+        <p> All Gen 0 kitties have been sold out!</p>
+        <p>Thank you all for supporting the first NFT collection on Kadena!</p>
       </div>
     );
   }

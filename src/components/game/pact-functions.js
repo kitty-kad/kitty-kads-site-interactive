@@ -83,16 +83,6 @@ function useAdoptKitties() {
   };
 }
 
-function useCheckIfOnWl() {
-  const { account, readFromContract, defaultMeta } = useContext(PactContext);
-
-  return async () => {
-    const pactCode = `(free.${KITTY_KADS_CONTRACT}.${WL_ROLE_FUNC} "${account.account}")`;
-    const meta = defaultMeta();
-    return await readFromContract({ pactCode, meta }, true);
-  };
-}
-
 function useAmountLeftToAdopt() {
   const { readFromContract, defaultMeta } = useContext(PactContext);
   const [amountLeftToAdopt, setAmountLeftToAdopt] = useState(null);
@@ -116,6 +106,5 @@ export {
   useGetMyKitties,
   useGetAllKitties,
   useAdoptKitties,
-  useCheckIfOnWl,
   useAmountLeftToAdopt,
 };
