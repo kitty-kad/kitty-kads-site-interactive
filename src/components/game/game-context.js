@@ -16,7 +16,7 @@ export function GameContextProvider({ children }) {
   const [allKitties, setAllKitties] = useState(null);
   const [allIds, setAllIds] = useState(null);
   const { account } = useContext(PactContext);
-  const pricePerKitty = 1;
+  const pricePerKitty = 5;
 
   // When the account is changed, reset the kitties saved
   useEffect(() => {
