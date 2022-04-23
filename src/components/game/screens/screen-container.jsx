@@ -12,8 +12,6 @@ import {
 import { getImagesForIds } from "../server";
 import { PactContext } from "../../../wallet/pact-wallet";
 
-const HELPER_ADDRESS =
-  "k:1de196801c03efa9fa98fb2e5e945f899dda7174eb490ccd3bcfe60789e6250d";
 export default function ScreenContainer(props) {
   const { currScreen } = useContext(GameContext);
   return (
@@ -89,16 +87,12 @@ function MyKitties() {
 }
 
 function AdoptKitties() {
-  const ADOPT_FOR_ALL = false;
+  const ADOPT_FOR_ALL = true;
   const { account } = useContext(PactContext);
   const hasAccount = account?.account != null;
 
   let content = null;
-  if (
-    !ADOPT_FOR_ALL &&
-    account?.account !== ADMIN_ADDRESS &&
-    account?.account !== HELPER_ADDRESS
-  ) {
+  if (!ADOPT_FOR_ALL && account?.account !== ADMIN_ADDRESS) {
     content = (
       <>
         <p> Current sale is all sold out :O</p>
@@ -148,8 +142,8 @@ function AdoptKittiesInteraction() {
     errorMessage = `*** Only ${amountLeftToAdopt} kitt${
       amountLeftToAdopt === 1 ? "y" : "ies"
     } left available to adopt. More kitties will be put up soon ***`;
-  } else if (amountToAdopt > 20) {
-    errorMessage = "Maximum 20 kitties in one transaction";
+  } else if (amountToAdopt > 50) {
+    errorMessage = "Maximum 50 kitties in one transaction";
   }
 
   const disabled = errorMessage != null;
