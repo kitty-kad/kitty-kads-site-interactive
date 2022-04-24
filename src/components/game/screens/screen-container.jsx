@@ -141,7 +141,7 @@ function AdoptKittiesInteraction() {
   ) {
     errorMessage = `*** Only ${amountLeftToAdopt} kitt${
       amountLeftToAdopt === 1 ? "y" : "ies"
-    } left available to adopt. More kitties will be put up soon ***`;
+    } left available to adopt ***`;
   } else if (amountToAdopt > 50) {
     errorMessage = "Maximum 50 kitties in one transaction";
   }
