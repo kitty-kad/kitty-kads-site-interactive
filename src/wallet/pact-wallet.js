@@ -240,8 +240,15 @@ export const PactContextProvider = ({ children }) => {
     setIsConnectWallet(false);
   };
 
-  const defaultMeta = () => {
-    return Pact.lang.mkMeta("", chainId, gasPrice, 150000, creationTime(), 600);
+  const defaultMeta = (gasLimit) => {
+    return Pact.lang.mkMeta(
+      "",
+      chainId,
+      gasPrice,
+      gasLimit ?? 150000,
+      creationTime(),
+      600
+    );
   };
 
   const readFromContract = async (cmd, returnError) => {

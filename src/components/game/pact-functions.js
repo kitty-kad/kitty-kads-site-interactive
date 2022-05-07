@@ -18,7 +18,7 @@ function useGetMyKitties() {
 
   return async () => {
     const pactCode = `(free.${KITTY_KADS_CONTRACT}.${OWNED_BY_FUNC} "${account.account}")`;
-    const meta = defaultMeta();
+    const meta = defaultMeta(1000000);
     return await readFromContract({ pactCode, meta });
   };
 }
