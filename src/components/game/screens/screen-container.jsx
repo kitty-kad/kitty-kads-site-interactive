@@ -291,7 +291,7 @@ function AllKitties() {
         setPage={setPage}
         kitties={(allKitties?.length > 0 && allKitties[page]) || null}
         loading={<Loading text="Fetching kitties..." />}
-        empty={<p style={{ textAlign: "center" }}>No kitties exist yet :O</p>}
+        empty={<p style={{ textAlign: "center" }}>No kitties found :O</p>}
         header={
           searchParams == null
             ? `${amount} ${kittiesStr(amount)} adopted around the world`
@@ -320,7 +320,7 @@ function KittiesList({
   }
   return (
     <CenterColumn extraStyle={extraStyle}>
-      {kitties != null && header != null && (
+      {kitties != null && kitties.length !== 0 && header != null && (
         <h2
           style={{
             color: "white",
