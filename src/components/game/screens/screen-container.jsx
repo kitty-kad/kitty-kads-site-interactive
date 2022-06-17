@@ -1,6 +1,7 @@
 import React, { useContext, useState, useEffect } from "react";
 import { GameContext } from "../game-context";
 import { SCREENS } from "../consts";
+import { Search } from "../search-utils";
 
 import {
   useGetMyKitties,
@@ -222,33 +223,41 @@ function AllKitties() {
   const PAGE_SIZE = 100;
   const [pages, setPages] = useState(null);
   const [page, setPage] = useState(0);
+  const [searchParams, setSearchParams] = useState(null);
   const getAllKitties = useGetAllKitties();
   const { allKitties, setAllKitties, allIds, setAllIds } =
     useContext(GameContext);
 
+  const fetchKitties = async (kittyIds) => {
+    // Kitties on pages should go from 1 -> N, lets sort them this way
+    kittyIds.sort(
+      (id1, id2) => parseInt(id1.split(":")[1]) - parseInt(id2.split(":")[1])
+    );
+    const pagesCount = Math.ceil(kittyIds.length / PAGE_SIZE);
+    const kittyIdsArr = [];
+    const allKittiesArr = [];
+    for (let i = 0; i < pagesCount; i++) {
+      allKittiesArr.push(null);
+      kittyIdsArr.push(kittyIds.slice(i * PAGE_SIZE, (i + 1) * PAGE_SIZE));
+    }
+    setPages(pagesCount);
+    setAllIds(kittyIdsArr);
+    setAllKitties(allKittiesArr);
+    // const images = await getImagesForIds(kittyIds);
+    // setAllKitties(images);
+  };
   useEffect(() => {
-    const fetchKitties = async () => {
-      const kittyIds = await getAllKitties();
-      // Kitties on pages should go from 1 -> N, lets sort them this way
-      kittyIds.sort(
-        (id1, id2) => parseInt(id1.split(":")[1]) - parseInt(id2.split(":")[1])
-      );
-      const pagesCount = Math.ceil(kittyIds.length / PAGE_SIZE);
-      const kittyIdsArr = [];
-      const allKittiesArr = [];
-      for (let i = 0; i < pagesCount; i++) {
-        allKittiesArr.push(null);
-        kittyIdsArr.push(kittyIds.slice(i * PAGE_SIZE, (i + 1) * PAGE_SIZE));
+    (async () => {
+      let kittyIds = null;
+      if (searchParams?.id == null) {
+        kittyIds = await getAllKitties();
+      } else {
+        kittyIds = [`1:${searchParams.id - 1}`];
       }
-      setPages(pagesCount);
-      setAllIds(kittyIdsArr);
-      setAllKitties(allKittiesArr);
-      // const images = await getImagesForIds(kittyIds);
-      // setAllKitties(images);
-    };
-    fetchKitties();
+      await fetchKitties(kittyIds);
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [searchParams]);
 
   useEffect(() => {
     // Not ready to start fetching kitties
@@ -283,7 +292,12 @@ function AllKitties() {
         kitties={(allKitties?.length > 0 && allKitties[page]) || null}
         loading={<Loading text="Fetching kitties..." />}
         empty={<p style={{ textAlign: "center" }}>No kitties exist yet :O</p>}
-        header={`${amount} ${kittiesStr(amount)} adopted around the world`}
+        header={
+          searchParams == null
+            ? `${amount} ${kittiesStr(amount)} adopted around the world`
+            : "Found it!"
+        }
+        search={<Search onSearch={setSearchParams} />}
       />
     </CenterColumn>
   );
@@ -297,6 +311,7 @@ function KittiesList({
   pages,
   page,
   setPage,
+  search,
 }) {
   const hasKitties = kitties != null && kitties.length > 0;
   const extraStyle = { overflowY: "scroll" };
@@ -306,10 +321,18 @@ function KittiesList({
   return (
     <CenterColumn extraStyle={extraStyle}>
       {kitties != null && header != null && (
-        <h2 style={{ color: "white", paddingTop: 10, fontSize: "25px" }}>
+        <h2
+          style={{
+            color: "white",
+            paddingTop: 10,
+            fontSize: "25px",
+            marginBottom: "10px",
+          }}
+        >
           {header}
         </h2>
       )}
+      <div style={kitties == null ? { display: "none" } : null}>{search}</div>
       <div
         style={{
           display: "flex",
@@ -415,9 +438,8 @@ function KittyCard({ id, base64, number, traits, genes, items, imgStyle }) {
         minWidth: 200,
         padding: "10 0",
       }}
-      onClick={
-        // () => navigator.clipboard.writeText(base64)
-        () => navigator.clipboard.writeText(JSON.stringify([genes, items]))
+      onClick={() =>
+        navigator.clipboard.writeText(JSON.stringify([genes, items]))
       }
     >
       <p style={{ fontSize: "1.5em", padding: 0, margin: 0 }}>#{number}</p>
@@ -443,9 +465,24 @@ function KittyImg({ base64, extraStyle }) {
   );
 }
 
-function CenterColumn({ children, extraStyle }) {
+export function CenterColumn({ children, extraStyle }) {
   return (
     <div style={{ ...centerColumnStyle, ...extraStyle, width: "100%" }}>
+      {children}
+    </div>
+  );
+}
+
+export function CenterRow({ children, extraStyle }) {
+  return (
+    <div
+      style={{
+        ...centerColumnStyle,
+        flexDirection: "row",
+        ...extraStyle,
+        width: "100%",
+      }}
+    >
       {children}
     </div>
   );
@@ -508,7 +545,7 @@ const centerColumnStyle = {
   alignItems: "center",
 };
 
-const textFontFamily = `-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+export const textFontFamily = `-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
 sans-serif`;
 
