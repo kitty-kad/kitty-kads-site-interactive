@@ -318,6 +318,7 @@ function KittiesList({
   if (hasKitties === true) {
     extraStyle.justifyContent = "flex-start";
   }
+
   return (
     <CenterColumn extraStyle={extraStyle}>
       {kitties != null && kitties.length !== 0 && header != null && (
