@@ -443,7 +443,16 @@ function KittyCard({ id, base64, number, traits, genes, items, imgStyle }) {
         navigator.clipboard.writeText(JSON.stringify([genes, items]))
       }
     >
-      <p style={{ fontSize: "1.5em", padding: 0, margin: 0 }}>#{number}</p>
+      <p style={{ fontSize: "1.5em", padding: 0, margin: 0 }}>#{number} </p>
+      <p
+        style={{
+          padding: 0,
+          margin: 0,
+          fontSize: "1em",
+          padding: 0,
+          margin: 0,
+        }}
+      >{`(ID: ${id})`}</p>
       <KittyImg base64={base64} extraStyle={imgStyle} />
       <p style={{ fontSize: "1em", marginBottom: 0, textAlign: "center" }}>
         Gen: 0
