@@ -498,15 +498,30 @@ function FeaturesInfo(allFeatures) {
   );
 }
 
+function replaceLongFeatures(str) {
+  switch (str) {
+    case "Default":
+      return "Normal";
+    case "Default Mouth":
+      return "Normal";
+    case "Normal Ears":
+      return "Normal";
+    default:
+      return str;
+  }
+}
+
 function Feature(feature) {
+  const subFeatures = feature.features?.filter((f) => f != null && f !== "");
+  console.log(subFeatures);
   return (
     <div>
       <FeatureText
         text={`${prettifyUnderscoreText(
           feature.templateType
-        )}: ${prettifyUnderscoreText(feature.templateId)}`}
+        )}: ${replaceLongFeatures(prettifyUnderscoreText(feature.templateId))}`}
       />
-      {feature.features != null && feature.features.length > 0 && (
+      {subFeatures != null && subFeatures.length > 0 && (
         <FeatureText
           isSubFeature={true}
           text={`Sub-features: ${feature.features.join(", ")}`}
@@ -548,6 +563,12 @@ function KittyCard({ kitty, showFeatures, notClickable }) {
       onClick={
         () => {
           if (notClickable === true) {
+            return;
+          }
+          if (id === "1:0") {
+            alert(
+              "This is the original Kitty Kad. It has no special features and can't be interacted with.\nPlease select another one 🐱"
+            );
             return;
           }
           setCurrScreen(SCREENS.DETAILS);
