@@ -498,19 +498,6 @@ function FeaturesInfo(allFeatures) {
   );
 }
 
-function replaceLongFeatures(str) {
-  switch (str) {
-    case "Default":
-      return "Normal";
-    case "Default Mouth":
-      return "Normal";
-    case "Normal Ears":
-      return "Normal";
-    default:
-      return str;
-  }
-}
-
 function Feature(feature) {
   const subFeatures = feature.features?.filter((f) => f != null && f !== "");
   console.log(subFeatures);
@@ -519,7 +506,7 @@ function Feature(feature) {
       <FeatureText
         text={`${prettifyUnderscoreText(
           feature.templateType
-        )}: ${replaceLongFeatures(prettifyUnderscoreText(feature.templateId))}`}
+        )}: ${prettifyUnderscoreText(feature.templateId)}`}
       />
       {subFeatures != null && subFeatures.length > 0 && (
         <FeatureText
@@ -553,7 +540,7 @@ function prettifyUnderscoreText(field) {
 }
 
 function KittyCard({ kitty, showFeatures, notClickable }) {
-  const { id, base64, genes, items } = kitty;
+  const { id, base64 } = kitty;
   const number = parseInt(kitty.id.split(":")[1]) + 1;
   const imgStyle = smallKittyStyle;
   const { setCurrKitty, setCurrScreen } = useContext(GameContext);
