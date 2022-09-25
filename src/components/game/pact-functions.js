@@ -7,7 +7,7 @@ const KITTY_KADS_CONTRACT = "kitty-kad-kitties";
 const ADOPT_FUNC = "adopt-gen-0s-bulk";
 const OWNED_BY_FUNC = "kitties-owned-by";
 const ALL_IDS_FUNC = "all-kitties";
-const WL_ROLE_FUNC = "enforce-adopt-wl-role";
+// const WL_ROLE_FUNC = "enforce-adopt-wl-role";
 // export const ADMIN_ADDRESS =
 //   "k:fd91af358418e2c8e50a501451a41de49af01f45e34bc4f1735cab293084f7ea";
 export const ADMIN_ADDRESS =
@@ -16,21 +16,23 @@ export const ADMIN_ADDRESS =
 function useGetMyKitties() {
   const { account, readFromContract, defaultMeta } = useContext(PactContext);
 
-  return async () => {
+  const [getMyKitties] = useState(() => async () => {
     const pactCode = `(free.${KITTY_KADS_CONTRACT}.${OWNED_BY_FUNC} "${account.account}")`;
     const meta = defaultMeta(1000000);
     return await readFromContract({ pactCode, meta });
-  };
+  });
+  return getMyKitties;
 }
 
 function useGetAllKitties() {
   const { readFromContract, defaultMeta } = useContext(PactContext);
 
-  return async () => {
+  const [getAllKitties] = useState(() => async () => {
     const pactCode = `(free.${KITTY_KADS_CONTRACT}.${ALL_IDS_FUNC})`;
     const meta = defaultMeta();
     return await readFromContract({ pactCode, meta });
-  };
+  });
+  return getAllKitties;
 }
 
 function useAdoptKitties() {

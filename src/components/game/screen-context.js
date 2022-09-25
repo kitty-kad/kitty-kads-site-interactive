@@ -7,13 +7,13 @@ import React, {
 } from "react";
 import { PactContext } from "../../wallet/pact-wallet";
 
-export const GameContext = createContext();
+export const ScreenContext = createContext();
 
 export function GameContextProvider({ children }) {
   const [currScreen, setCurrScreen] = useState(null);
   const [myKitties, setMyKitties] = useState(null);
-  // Kitties data drops the 1: from the start
-  const [allKittiesData, setAllKittiesData] = useState(null);
+  const [allKitties, setAllKitties] = useState(null);
+  const [allIds, setAllIds] = useState(null);
   const [currKitty, setCurrKitty] = useState(null);
   const { account } = useContext(PactContext);
   const [lastScreen, setLastScreen] = useState(null);
@@ -34,9 +34,11 @@ export function GameContextProvider({ children }) {
       },
       myKitties,
       setMyKitties,
-      allKittiesData,
-      setAllKittiesData,
+      allKitties,
+      setAllKitties,
       pricePerKitty,
+      allIds,
+      setAllIds,
       currKitty,
       setCurrKitty,
       lastScreen,
@@ -49,9 +51,11 @@ export function GameContextProvider({ children }) {
     setCurrScreen,
     myKitties,
     setMyKitties,
-    allKittiesData,
-    setAllKittiesData,
+    allKitties,
+    setAllKitties,
     pricePerKitty,
+    allIds,
+    setAllIds,
     currKitty,
     setCurrKitty,
     lastScreen,

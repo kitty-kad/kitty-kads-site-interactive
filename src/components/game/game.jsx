@@ -1,8 +1,8 @@
-import { useEffect, useContext, useState } from "react";
+import { useContext } from "react";
 import useWindowSize from "../../hooks/useWindowSize";
 import {
   PactContext,
-  TEST_NET_ID,
+  // TEST_NET_ID,
   MAIN_NET_ID,
 } from "../../wallet/pact-wallet";
 import SideMenu from "./side-menu/side-menu";

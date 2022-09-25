@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState, useEffect, useMemo } from "react";
 import { GameContext } from "../game-context";
 import { SCREENS } from "../consts";
 import { Search } from "../search-utils";
@@ -13,20 +13,26 @@ import {
 import { getImagesForIds } from "../server";
 import { PactContext } from "../../../wallet/pact-wallet";
 
+const PAGE_SIZE = 100;
+
 export default function ScreenContainer(props) {
   const { currScreen } = useContext(GameContext);
+  const [page, setPage] = useState(0);
   return (
     <div style={screensStyle}>
       {currScreen == null && <Landing />}
       {currScreen === SCREENS.MY_KITTIES && <MyKitties />}
-      {currScreen === SCREENS.ALL_KITTIES && <AllKitties />}
+      {currScreen === SCREENS.ALL_KITTIES && (
+        <AllKitties page={page} setPage={setPage} />
+      )}
       {currScreen === SCREENS.ADOPT && <AdoptKitties />}
+      {currScreen === SCREENS.DETAILS && <SelectedKitty />}
     </div>
   );
 }
 
 function Landing() {
-  const { account, netId } = useContext(PactContext);
+  const { account } = useContext(PactContext);
   return (
     <KittyGuideWithContent>
       <div>
@@ -219,69 +225,109 @@ function AdoptKittiesInteraction() {
   );
 }
 
-function AllKitties() {
-  const PAGE_SIZE = 100;
-  const [pages, setPages] = useState(null);
-  const [page, setPage] = useState(0);
+function idToIndex(id) {
+  return parseInt(id.split(":")[1]);
+}
+function sortIds(ids) {
+  // Copy the ids so we don't mutate the original and sort
+  return [...ids].sort((id1, id2) => idToIndex(id1) - idToIndex(id2));
+}
+
+function idsNeededForPage(page) {
+  const ids = [];
+  for (let i = 0; i < PAGE_SIZE; i++) {
+    ids.push(`1:${page * PAGE_SIZE + i}`);
+  }
+  return ids;
+}
+
+function idsToFetch(idsNeeded, allKittiesData) {
+  const toFetch = [];
+  for (let i = 0; i < idsNeeded.length; i++) {
+    const id = idsNeeded[i];
+    const index = idToIndex(id);
+    if (allKittiesData[index] == null) {
+      toFetch.push(id);
+    }
+  }
+  return toFetch;
+}
+
+function idsToShow(page, searchParams) {
+  if (searchParams == null) {
+    return idsNeededForPage(page);
+  }
+  return [`1:${searchParams.id - 1}`];
+}
+
+function AllKitties({ page, setPage }) {
+  const { allKittiesData, setAllKittiesData } = useContext(GameContext);
+  const [pages, setPages] = useState(allKittiesData?.length);
   const [searchParams, setSearchParams] = useState(null);
   const getAllKitties = useGetAllKitties();
-  const { allKitties, setAllKitties, allIds, setAllIds } =
-    useContext(GameContext);
 
-  const fetchKitties = async (kittyIds) => {
-    // Kitties on pages should go from 1 -> N, lets sort them this way
-    kittyIds.sort(
-      (id1, id2) => parseInt(id1.split(":")[1]) - parseInt(id2.split(":")[1])
-    );
-    const pagesCount = Math.ceil(kittyIds.length / PAGE_SIZE);
-    const kittyIdsArr = [];
-    const allKittiesArr = [];
-    for (let i = 0; i < pagesCount; i++) {
-      allKittiesArr.push(null);
-      kittyIdsArr.push(kittyIds.slice(i * PAGE_SIZE, (i + 1) * PAGE_SIZE));
-    }
-    setPages(pagesCount);
-    setAllIds(kittyIdsArr);
-    setAllKitties(allKittiesArr);
-    // const images = await getImagesForIds(kittyIds);
-    // setAllKitties(images);
-  };
-  useEffect(() => {
-    (async () => {
-      let kittyIds = null;
-      if (searchParams?.id == null) {
-        kittyIds = await getAllKitties();
-      } else {
-        kittyIds = [`1:${searchParams.id - 1}`];
-      }
-      await fetchKitties(kittyIds);
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
+  function getPagesCount(kittiesCount) {
+    return Math.ceil(kittiesCount / PAGE_SIZE);
+  }
 
+  // Initialize things
   useEffect(() => {
-    // Not ready to start fetching kitties
-    if (
-      allIds == null ||
-      allIds.length === 0 ||
-      allKitties == null ||
-      allKitties.length === 0
-    ) {
+    if (allKittiesData != null) {
       return;
     }
-    const fetchAndSaveImages = async (index, allKitties, allIds) => {
-      const idsToFetch = allIds[index];
-      const images = await getImagesForIds(idsToFetch);
-      allKitties = [...allKitties];
-      allKitties[index] = images;
-      setAllKitties(allKitties);
-    };
-    if (allKitties[page] == null) {
-      fetchAndSaveImages(page, allKitties, allIds);
-    }
-  }, [page, allIds, setAllIds, allKitties, setAllKitties]);
+    (async () => {
+      const allIds = await getAllKitties();
+      const sortedAllIds = sortIds(allIds);
+      const allIdsToSave = [];
+      for (let i = 0; i < sortedAllIds.length; i++) {
+        allIdsToSave.push(null);
+      }
+      const pagesCount = getPagesCount(allIdsToSave.length);
+      setAllKittiesData(allIdsToSave);
+      setPages(pagesCount);
+    })();
+  }, [getAllKitties, setAllKittiesData, allKittiesData]);
 
-  const amount = allIds?.reduce((total, curr) => curr.length + total, 0) ?? 0;
+  // Update current data to show (including doing any fetching)
+  useEffect(() => {
+    // Not ready to start
+    if (allKittiesData == null) {
+      return;
+    }
+    let ids = idsToShow(page, searchParams);
+    const idsNotLoaded = idsToFetch(ids, allKittiesData);
+    if (idsNotLoaded.length === 0) {
+      return;
+    }
+    const fetchNeededImagesAndSetIdsToShow = async (idsNotLoaded) => {
+      const fetchedImages = await getImagesForIds(idsNotLoaded);
+      const updatedData = [...allKittiesData];
+      for (let i = 0; i < fetchedImages.length; i++) {
+        const id = fetchedImages[i].id;
+        const index = idToIndex(id);
+        updatedData[index] = fetchedImages[i];
+      }
+      setAllKittiesData(updatedData);
+    };
+    fetchNeededImagesAndSetIdsToShow(idsNotLoaded, allKittiesData);
+  }, [page, allKittiesData, setAllKittiesData, searchParams]);
+
+  const kitties = useMemo(() => {
+    if (allKittiesData == null) {
+      return null;
+    }
+    let ids = idsToShow(page, searchParams);
+    const arr = [];
+    for (let i = 0; i < ids.length; i++) {
+      const index = idToIndex(ids[i]);
+      if (allKittiesData[index] == null) {
+        return null;
+      }
+      arr.push(allKittiesData[index]);
+    }
+    return arr;
+  }, [allKittiesData, page, searchParams]);
+  const amount = allKittiesData?.length;
 
   return (
     <CenterColumn>
@@ -289,7 +335,7 @@ function AllKitties() {
         pages={pages}
         page={page}
         setPage={setPage}
-        kitties={(allKitties?.length > 0 && allKitties[page]) || null}
+        kitties={kitties}
         loading={<Loading text="Fetching kitties..." />}
         empty={<p style={{ textAlign: "center" }}>No kitties found :O</p>}
         header={
@@ -349,18 +395,7 @@ function KittiesList({
         {kitties != null && (
           <>
             {kitties.map((kitty) => {
-              return (
-                <KittyCard
-                  key={kitty.id}
-                  id={kitty.id}
-                  number={parseInt(kitty.id.split(":")[1]) + 1}
-                  traits={kitty.traits}
-                  genes={kitty.genes}
-                  items={kitty.items}
-                  base64={kitty.base64}
-                  imgStyle={smallKittyStyle}
-                />
-              );
+              return <KittyCard key={kitty.id} kitty={kitty} />;
             })}
             <ListNav pages={pages} page={page} setPage={setPage} />
           </>
@@ -408,7 +443,7 @@ function ListNav({ pages, page, setPage }) {
         justifyContent: "center",
       }}
     >
-      {navButtons.map((button) => button)}
+      {navButtons.map((button, i) => button)}
     </CenterColumn>
   );
 }
@@ -427,36 +462,140 @@ function NavButton({ text, onClick, isSelected }) {
   );
 }
 
-function KittyCard({ id, base64, number, traits, genes, items, imgStyle }) {
+function SelectedKitty() {
+  const { currKitty, setCurrScreen, lastScreen } = useContext(GameContext);
+
+  if (currKitty == null) {
+    return;
+  }
   return (
-    <div
-      style={{
-        ...centerColumnStyle,
-        border: "solid 2px white",
-        borderRadius: 21,
-        margin: 9,
-        maxWidth: 200,
-        minWidth: 200,
-        padding: "10 0",
-      }}
-      onClick={() =>
-        navigator.clipboard.writeText(JSON.stringify([genes, items]))
-      }
-    >
-      <p style={{ fontSize: "1.5em", padding: 0, margin: 0 }}>#{number} </p>
+    <CenterColumn>
       <p
         style={{
-          padding: 0,
-          margin: 0,
-          fontSize: "1em",
-          padding: 0,
-          margin: 0,
+          cursor: "pointer",
+          // margin: "0 50",
         }}
-      >{`(ID: ${id})`}</p>
-      <KittyImg base64={base64} extraStyle={imgStyle} />
-      <p style={{ fontSize: "1em", marginBottom: 0, textAlign: "center" }}>
-        Gen: 0
+        onClick={() => setCurrScreen(lastScreen)}
+      >
+        ⬅ Back
       </p>
+      <KittyCard kitty={currKitty} showFeatures={true} notClickable={true} />
+    </CenterColumn>
+  );
+}
+
+function FeaturesInfo(allFeatures) {
+  const features = Object.entries(allFeatures).map((entry) => entry[1]);
+  return (
+    <div>
+      {features.map((feature, i) => {
+        if (feature.templateType === "color") {
+          return null;
+        }
+        return <Feature key={i} {...feature} />;
+      })}
+    </div>
+  );
+}
+
+function Feature(feature) {
+  return (
+    <div>
+      <FeatureText
+        text={`${prettifyUnderscoreText(
+          feature.templateType
+        )}: ${prettifyUnderscoreText(feature.templateId)}`}
+      />
+      {feature.features != null && feature.features.length > 0 && (
+        <FeatureText
+          isSubFeature={true}
+          text={`Sub-features: ${feature.features.join(", ")}`}
+        />
+      )}
+    </div>
+  );
+}
+
+function FeatureText({ text, isSubFeature }) {
+  return (
+    <p
+      style={{
+        fontSize: isSubFeature ? "0.75em" : "1em",
+        margin: 0,
+        marginLeft: isSubFeature ? 10 : 0,
+      }}
+    >
+      {text}
+    </p>
+  );
+}
+
+function prettifyUnderscoreText(field) {
+  const s = field.toLowerCase();
+  return s.replace(/^_*(.)|_+(.)/g, (s, c, d) =>
+    c ? c.toUpperCase() : " " + d.toUpperCase()
+  );
+}
+
+function KittyCard({ kitty, showFeatures, notClickable }) {
+  const { id, base64, genes, items } = kitty;
+  const number = parseInt(kitty.id.split(":")[1]) + 1;
+  const imgStyle = smallKittyStyle;
+  const { setCurrKitty, setCurrScreen } = useContext(GameContext);
+  return (
+    <div
+      style={{ cursor: notClickable === true ? "normal" : "pointer" }}
+      onClick={
+        () => {
+          if (notClickable === true) {
+            return;
+          }
+          setCurrScreen(SCREENS.DETAILS);
+          setCurrKitty(kitty);
+        }
+        // navigator.clipboard.writeText(JSON.stringify([genes, items]))
+      }
+    >
+      <CenterRow
+        extraStyle={{
+          border: "solid 2px white",
+          borderRadius: 21,
+          margin: 9,
+          padding: "10 20",
+          width: "max-content",
+        }}
+      >
+        {showFeatures && (
+          <div>
+            {kitty.allFeatures != null && (
+              <FeaturesInfo {...kitty?.allFeatures} />
+            )}
+          </div>
+        )}
+        <div
+          style={{
+            ...centerColumnStyle,
+            maxWidth: 200,
+            minWidth: 200,
+            padding: "10 0",
+          }}
+        >
+          <p style={{ fontSize: "1.5em", padding: 0, margin: 0 }}>#{number} </p>
+          <p
+            style={{
+              padding: 0,
+              margin: 0,
+              fontSize: "1em",
+              padding: 0,
+              margin: 0,
+            }}
+          >{`(ID: ${id})`}</p>
+          <KittyImg base64={base64} extraStyle={imgStyle} />
+          <p style={{ fontSize: "1em", marginBottom: 0, textAlign: "center" }}>
+            Gen: 0
+          </p>
+        </div>
+      </CenterRow>
     </div>
   );
 }
@@ -477,7 +616,7 @@ function KittyImg({ base64, extraStyle }) {
 
 export function CenterColumn({ children, extraStyle }) {
   return (
-    <div style={{ ...centerColumnStyle, ...extraStyle, width: "100%" }}>
+    <div style={{ ...centerColumnStyle, width: "100%", ...extraStyle }}>
       {children}
     </div>
   );
@@ -489,8 +628,8 @@ export function CenterRow({ children, extraStyle }) {
       style={{
         ...centerColumnStyle,
         flexDirection: "row",
-        ...extraStyle,
         width: "100%",
+        ...extraStyle,
       }}
     >
       {children}
