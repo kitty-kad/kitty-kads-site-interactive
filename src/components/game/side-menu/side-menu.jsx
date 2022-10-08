@@ -12,9 +12,9 @@ export default function SideMenu(props) {
         {account?.account == null ? "Connect wallet" : "Change wallet"}
       </button>
       <SideMenuButton
-        title="Adopt"
-        active={currScreen === SCREENS.ADOPT}
-        onClick={() => setCurrScreen(SCREENS.ADOPT)}
+        title="Buy"
+        active={currScreen === SCREENS.BUY}
+        onClick={() => setCurrScreen(SCREENS.BUY)}
       />
       <SideMenuButton
         title="My Kitties"

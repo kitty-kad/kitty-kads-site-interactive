@@ -1,5 +1,5 @@
 export const SCREENS = {
-  ADOPT: "ADOPT",
+  BUY: "BUY",
   MY_KITTIES: "MY_KITTIES",
   ALL_KITTIES: "ALL_KITTIES",
   DETAILS: "DETAILS",

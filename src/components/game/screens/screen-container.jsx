@@ -6,8 +6,7 @@ import { SearchFilters } from "../search-utils";
 import {
   useGetMyKitties,
   useGetAllKitties,
-  useAdoptKitties,
-  useAmountLeftToAdopt,
+  useGetKittiesOnSale,
   ADMIN_ADDRESS,
 } from "../pact-functions";
 import { getImagesForIds, getKittiesForFilters } from "../server";
@@ -43,7 +42,7 @@ export default function ScreenContainer(props) {
       {currScreen === SCREENS.ALL_KITTIES && allKittiesData != null && (
         <AllKitties />
       )}
-      {currScreen === SCREENS.ADOPT && <AdoptKitties />}
+      {currScreen === SCREENS.BUY && <BuyKitties />}
       {currScreen === SCREENS.DETAILS && <SelectedKitty />}
     </div>
   );
@@ -111,29 +110,42 @@ function MyKitties() {
   );
 }
 
-function AdoptKitties() {
-  const ADOPT_FOR_ALL = true;
+function BuyKitties() {
   const { account } = useContext(PactContext);
-  const hasAccount = account?.account != null;
+  // const hasAccount = account?.account != null;
 
-  let content = null;
-  if (!ADOPT_FOR_ALL && account?.account !== ADMIN_ADDRESS) {
-    content = (
-      <>
-        <p> Current sale is all sold out :O</p>
-        <p>Final 5,000 Gen 0s will be live on the 23rd of April.</p>
-      </>
-    );
-  } else if (!hasAccount) {
-    content = (
-      <>
-        <p>Can't adopt without a wallet!</p>
-        <ConnectWalletText />
-      </>
-    );
-  } else {
-    content = <AdoptKittiesInteraction />;
-  }
+  // let content = <BuyKittiesList />;
+  let content = (
+    <>
+      <p>Coming soon!</p>
+      <p>
+        For now you can trade on <br />
+        <div
+          style={{ textDecoration: "underline", cursor: "pointer" }}
+          onClick={() => window.open("https://www.arkade.fun/", "_blank")}
+        >
+          arkade.fun
+        </div>
+      </p>
+    </>
+  );
+  // if (true) {
+  // content = (
+  //   <>
+  //     <p> Current sale is all sold out :O</p>
+  //     <p>Final 5,000 Gen 0s will be live on the 23rd of April.</p>
+  //   </>
+  // );
+  // } else {
+  //   content = (
+  //     <>
+  //       <p>Can't adopt without a wallet!</p>
+  //       <ConnectWalletText />
+  //     </>
+  //   );
+  // } else {
+  // content = <AdoptKittiesInteraction />;
+  // }
 
   return (
     <KittyGuideWithContent>
@@ -142,105 +154,16 @@ function AdoptKitties() {
   );
 }
 
-function AdoptKittiesInteraction() {
-  const adoptKitties = useAdoptKitties();
-  const amountLeftToAdopt = useAmountLeftToAdopt();
-  const [amountToAdopt, setAmountToAdopt] = useState(1);
-  const { pricePerKitty, setCurrScreen } = useContext(GameContext);
-
-  if (amountLeftToAdopt === 0) {
-    return (
-      <div>
-        <p> All Gen 0 kitties have been sold out!</p>
-        <p>Thank you all for supporting the first NFT collection on Kadena!</p>
-      </div>
-    );
-  }
-
-  let errorMessage = null;
-  if (amountToAdopt < 1) {
-    errorMessage = "*** You must adopt more than 0 kitties ***";
-  } else if (
-    amountLeftToAdopt != null &&
-    amountLeftToAdopt - amountToAdopt < 0
-  ) {
-    errorMessage = `*** Only ${amountLeftToAdopt} kitt${
-      amountLeftToAdopt === 1 ? "y" : "ies"
-    } left available to adopt ***`;
-  } else if (amountToAdopt > 50) {
-    errorMessage = "Maximum 50 kitties in one transaction";
-  }
-
-  const disabled = errorMessage != null;
-
-  return (
-    <div>
-      <p>
-        Each kitty is a one of a kind digital pet
-        <br />
-        Adopt a kitty today
-      </p>
-      <CenterColumn
-        extraStyle={{
-          justifyContent: "flex-start",
-          width: 50,
-          alignItems: "flex-start",
-        }}
-      >
-        <CenterColumn
-          extraStyle={{
-            flexDirection: "row",
-            justifyContent: "flex-start",
-            paddingBottom: 20,
-          }}
-        >
-          <p style={{ margin: 0, width: 80 }}>Kitties: </p>
-          <input
-            style={{
-              borderRadius: 5,
-              width: 80,
-              border: "none",
-              textAlign: "center",
-              height: "2em",
-            }}
-            type="number"
-            defaultValue={amountToAdopt}
-            onChange={(e) => {
-              const val = e?.target?.value;
-              setAmountToAdopt(parseInt(val === "" ? "0" : val));
-            }}
-          />
-        </CenterColumn>
-        <button
-          disabled={disabled}
-          style={{
-            width: 160,
-            fontFamily: textFontFamily,
-            fontSize: "16px",
-            lineHeight: "30px",
-            color: "white",
-            background: disabled ? "gray" : "#249946",
-            border: "none",
-            borderRadius: 5,
-          }}
-          onClick={() =>
-            adoptKitties(amountToAdopt, () => {
-              setCurrScreen(SCREENS.MY_KITTIES);
-            })
-          }
-        >
-          {errorMessage == null &&
-            `Adopt for ${pricePerKitty * amountToAdopt} KDA`}
-          {errorMessage != null && "Read below"}
-        </button>
-        {/* </Button> */}
-      </CenterColumn>
-      <p style={{ fontSize: "1em", paddingTop: "10" }}>
-        {errorMessage}
-        {errorMessage == null && "(Kitties will be visible after adoption)"}
-      </p>
-    </div>
-  );
+function BuyKittiesList() {
+  const getKittiesOnSale = useGetKittiesOnSale();
+  useEffect(() => {
+    (async () => {
+      const ids = await getKittiesOnSale();
+      console.log(ids);
+    })();
+  }, []);
+  return null;
+  // const getKittiesOnSale = useGetKittiesOnSale();
 }
 
 function idToIndex(id) {
@@ -270,14 +193,6 @@ function idsToFetch(idsNeeded, allKittiesData) {
   }
   return toFetch;
 }
-
-// function idsToShow(page, allKittiesData) {
-//   // if (searchParams == null) {
-//   return idsNeededForPage(page, allKittiesData);
-//   // } else if (searchParams.id != null) return [`1:${searchParams.id - 1}`];
-//   // return [];
-//   // }
-// }
 
 function getNewAllKittiesData(allKittiesData, fetchedData) {
   const updatedData = [...allKittiesData];
@@ -777,3 +692,104 @@ sans-serif`;
 
 const defaultImageStyle = { height: 320, imageRendering: "pixelated" };
 const smallKittyStyle = { width: "100%", height: "auto" };
+
+// function AdoptKittiesInteraction() {
+//   const adoptKitties = useAdoptKitties();
+//   const amountLeftToAdopt = useAmountLeftToAdopt();
+//   const [amountToAdopt, setAmountToAdopt] = useState(1);
+//   const { pricePerKitty, setCurrScreen } = useContext(GameContext);
+
+//   if (amountLeftToAdopt === 0) {
+//     return (
+//       <div>
+//         <p> All Gen 0 kitties have been sold out!</p>
+//         <p>Thank you all for supporting the first NFT collection on Kadena!</p>
+//       </div>
+//     );
+//   }
+
+//   let errorMessage = null;
+//   if (amountToAdopt < 1) {
+//     errorMessage = "*** You must adopt more than 0 kitties ***";
+//   } else if (
+//     amountLeftToAdopt != null &&
+//     amountLeftToAdopt - amountToAdopt < 0
+//   ) {
+//     errorMessage = `*** Only ${amountLeftToAdopt} kitt${
+//       amountLeftToAdopt === 1 ? "y" : "ies"
+//     } left available to adopt ***`;
+//   } else if (amountToAdopt > 50) {
+//     errorMessage = "Maximum 50 kitties in one transaction";
+//   }
+
+//   const disabled = errorMessage != null;
+
+//   return (
+//     <div>
+//       <p>
+//         Each kitty is a one of a kind digital pet
+//         <br />
+//         Adopt a kitty today
+//       </p>
+//       <CenterColumn
+//         extraStyle={{
+//           justifyContent: "flex-start",
+//           width: 50,
+//           alignItems: "flex-start",
+//         }}
+//       >
+//         <CenterColumn
+//           extraStyle={{
+//             flexDirection: "row",
+//             justifyContent: "flex-start",
+//             paddingBottom: 20,
+//           }}
+//         >
+//           <p style={{ margin: 0, width: 80 }}>Kitties: </p>
+//           <input
+//             style={{
+//               borderRadius: 5,
+//               width: 80,
+//               border: "none",
+//               textAlign: "center",
+//               height: "2em",
+//             }}
+//             type="number"
+//             defaultValue={amountToAdopt}
+//             onChange={(e) => {
+//               const val = e?.target?.value;
+//               setAmountToAdopt(parseInt(val === "" ? "0" : val));
+//             }}
+//           />
+//         </CenterColumn>
+//         <button
+//           disabled={disabled}
+//           style={{
+//             width: 160,
+//             fontFamily: textFontFamily,
+//             fontSize: "16px",
+//             lineHeight: "30px",
+//             color: "white",
+//             background: disabled ? "gray" : "#249946",
+//             border: "none",
+//             borderRadius: 5,
+//           }}
+//           onClick={() =>
+//             adoptKitties(amountToAdopt, () => {
+//               setCurrScreen(SCREENS.MY_KITTIES);
+//             })
+//           }
+//         >
+//           {errorMessage == null &&
+//             `Adopt for ${pricePerKitty * amountToAdopt} KDA`}
+//           {errorMessage != null && "Read below"}
+//         </button>
+//         {/* </Button> */}
+//       </CenterColumn>
+//       <p style={{ fontSize: "1em", paddingTop: "10" }}>
+//         {errorMessage}
+//         {errorMessage == null && "(Kitties will be visible after adoption)"}
+//       </p>
+//     </div>
+//   );
+// }

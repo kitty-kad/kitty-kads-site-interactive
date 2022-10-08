@@ -290,7 +290,6 @@ function FeatureSelector({
     } else if (subFeature !== selectedSubFeature) {
       setSelectedSubFeature(subFeature);
     }
-
     if (templateId == null) {
       return {};
     }
@@ -300,6 +299,7 @@ function FeatureSelector({
         templateId,
       },
     };
+    console.log(val);
     if (subFeature != null) {
       val[templateType].features = [subFeature];
     }
