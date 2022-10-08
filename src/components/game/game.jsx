@@ -14,10 +14,9 @@ import { GameContextProvider } from "./game-context";
 export const Header = (props) => {
   // const isSmallScreen = useWindowSize() <= 600;
   const screenStyle = { ...style };
-  const { useSetNetworkSettings } = useContext(PactContext);
+  const { useSetNetworkSettings, networkUrl } = useContext(PactContext);
   const windowSize = useWindowSize();
 
-  // useSetNetworkSettings(TEST_NET_ID, "1");
   useSetNetworkSettings(MAIN_NET_ID, "1");
 
   return (
@@ -30,7 +29,7 @@ export const Header = (props) => {
               <SideMenu />
             </div>
             <div style={mainContentStyle}>
-              <ScreenContainer />
+              {networkUrl != null && <ScreenContainer />}
             </div>
           </div>
         </GameContextProvider>

@@ -10,7 +10,9 @@ import { PactContext } from "../../wallet/pact-wallet";
 export const GameContext = createContext();
 
 export function GameContextProvider({ children }) {
+  const [searchParams, setSearchParams] = useState(null);
   const [currScreen, setCurrScreen] = useState(null);
+  const [pagesInfo, setPagesInfo] = useState({ page: 0 });
   const [myKitties, setMyKitties] = useState(null);
   // Kitties data drops the 1: from the start
   const [allKittiesData, setAllKittiesData] = useState(null);
@@ -40,6 +42,10 @@ export function GameContextProvider({ children }) {
       currKitty,
       setCurrKitty,
       lastScreen,
+      pagesInfo,
+      setPagesInfo,
+      searchParams,
+      setSearchParams,
       calculateKittiesPrice: (amount) => {
         return Math.round(pricePerKitty * amount * 100) / 100;
       },
@@ -55,6 +61,10 @@ export function GameContextProvider({ children }) {
     currKitty,
     setCurrKitty,
     lastScreen,
+    pagesInfo,
+    setPagesInfo,
+    searchParams,
+    setSearchParams,
   ]);
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

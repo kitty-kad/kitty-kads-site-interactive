@@ -6,6 +6,7 @@ import "react-toastify/dist/ReactToastify.css";
 import TransactionModal from "./TransactionModal";
 import ConnectWalletModal from "./ConnectWalletModal";
 import Pact from "pact-lang-api";
+import { useCallback } from "react";
 
 export const PactContext = createContext();
 export const DEFAULT_GAS_PRICE = 0.00000001;
@@ -26,11 +27,11 @@ export const PactContextProvider = ({ children }) => {
   const [currTransactionState, setCurrTransactionState] = useState({});
   const [isConnectWallet, setIsConnectWallet] = useState(false);
   const [isXwallet, setIsXwallet] = useState(tryLoadLocal(IS_X_WALLET_KEY));
-  console.log(isXwallet);
 
   /* HELPER HOOKS */
   useEffect(() => {
-    setNetworkUrl(getNetworkUrl(netId, chainId));
+    const newNetworkUrl = getNetworkUrl(netId, chainId);
+    setNetworkUrl(newNetworkUrl);
   }, [netId, chainId]);
 
   const setNetworkSettings = (netId, chainId, gasPrice) => {
@@ -240,16 +241,19 @@ export const PactContextProvider = ({ children }) => {
     setIsConnectWallet(false);
   };
 
-  const defaultMeta = (gasLimit) => {
-    return Pact.lang.mkMeta(
-      "",
-      chainId,
-      gasPrice,
-      gasLimit ?? 150000,
-      creationTime(),
-      600
-    );
-  };
+  const defaultMeta = useCallback(
+    (gasLimit) => {
+      return Pact.lang.mkMeta(
+        "",
+        chainId,
+        gasPrice,
+        gasLimit ?? 150000,
+        creationTime(),
+        600
+      );
+    },
+    [chainId, gasPrice]
+  );
 
   const readFromContract = async (cmd, returnError) => {
     try {
@@ -386,6 +390,7 @@ export const PactContextProvider = ({ children }) => {
         netId,
         chainId,
         gasPrice,
+        networkUrl,
       }}
     >
       <ToastContainer

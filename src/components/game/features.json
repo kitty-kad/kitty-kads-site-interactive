@@ -1,0 +1,379 @@
+{
+   "HAT":{
+      "LARGE_RICE_FIELD_HAT":[
+         "faded",
+         "bright"
+      ],
+      "RIVER_HAT":[
+         
+      ],
+      "HALO":[
+         "white and gold",
+         "gold",
+         "black and gold",
+         "gold and black",
+         "gold and white",
+         "white and black",
+         "white",
+         "black",
+         "black and white"
+      ],
+      "WITCH_HAT":[
+         "k logo"
+      ],
+      "TOP_HAT":[
+         "gold stripe",
+         "white stripe",
+         "custom color stripe"
+      ],
+      "PIRATE":[
+         "gold",
+         "red bandana",
+         "purple bandana",
+         "green bandana",
+         "spooky",
+         "blue bandana",
+         "dark"
+      ],
+      "EVIL_TOP_HAT":[
+         
+      ],
+      "VIKING":[
+         "dark gray helmet",
+         "white horns",
+         "gold helmet",
+         "gray helmet",
+         "gold horns"
+      ],
+      "BIG_MUSHROOM":[
+         "red mushroom",
+         "colored mushroom",
+         "dark red mushroom"
+      ],
+      "BANDANA":[
+         "k logo"
+      ],
+      "CHEF_HAT":[
+         "white",
+         "k logo",
+         "colored"
+      ],
+      "FARMER_HAT":[
+         
+      ],
+      "MUSHROOM":[
+         "dark red mushroom",
+         "colored mushroom",
+         "red mushroom"
+      ],
+      "SOMBRERO":[
+         "random colors",
+         "themed colors"
+      ],
+      "BOWLER_HAT":[
+         "custom color stripe",
+         "gold stripe",
+         "white stripe"
+      ],
+      "SMALL_CROWN":[
+         "k logo"
+      ],
+      "RICE_FIELD_HAT":[
+         "bright",
+         "faded"
+      ],
+      "SKATER_HELMET":[
+         "k logo"
+      ]
+   },
+   "EARS":{
+      "NORMAL_EARS":[
+         "colored ear tips",
+         "no ear tips",
+         "white ear tips"
+      ],
+      "BOTH_FOLDED":[
+         
+      ],
+      "FAST_EARS":[
+         "no ear tips",
+         "white ear tips",
+         "colored ear tips"
+      ],
+      "LEFT_FOLDED":[
+         "no ear tips",
+         "colored ear tips",
+         "white ear tips"
+      ],
+      "MONKEY_EARS":[
+         "no ear tips",
+         "colored ear tips"
+      ],
+      "RIGHT_FOLDED":[
+         "colored ear tips",
+         "no ear tips",
+         "white ear tips"
+      ],
+      "PERKY_EARS":[
+         "white ear tips",
+         "no ear tips",
+         "colored ear tips"
+      ]
+   },
+    "EYES":{
+       "NORMAL":[
+          "no dimples"
+       ],
+       "DOWN":[
+          "no dimples"
+       ],
+       "DIAMOND":[
+          "no dimples",
+          "empty eyes",
+          "colored eyes"
+       ],
+       "CUTE":[
+          "no dimples"
+       ],
+       "FLAT":[
+          "no dimples"
+       ],
+       "SMALL_ANIME":[
+          "no dimples"
+       ],
+       "SMALL_HIGH":[
+          "no dimples"
+       ],
+       "NARROW_HIGH":[
+          "no dimples"
+       ],
+       "NARROW":[
+          "no dimples"
+       ],
+       "SMALL":[
+          "no dimples"
+       ],
+       "SMALL_WIDE":[
+          "no dimples"
+       ]
+    },
+    "GLASSES":{
+      "BASIC":[
+         "black frame",
+         "colored glasses",
+         "glare",
+         "colored frame",
+         "black"
+      ],
+      "3D":[
+         "red and blue",
+         "polarized",
+         "red and green"
+      ],
+      "THUG_LIFE":[
+         
+      ],
+      "VISOR":[
+         "full beam",
+         "narrower beam"
+      ],
+      "DISGUISE":[
+         "glare",
+         "gradient",
+         "funky",
+         "single color"
+      ],
+      "DIZZY":[
+         
+      ],
+      "NERDY_GLASSES":[
+         "striped",
+         "black eyes",
+         "dot eyes",
+         "colored glare",
+         "glare",
+         "colored eyes"
+      ],
+      "BIG_GLASSES":[
+         "colored eyes"
+      ],
+      "BIG_GLASSES_WIDE":[
+         "colored eyes"
+      ],
+      "VR":[
+         
+      ],
+      "COOL_GLASSES":[
+         "colored eyes",
+         "dot eyes",
+         "striped",
+         "colored glare",
+         "glare",
+         "black eyes"
+      ],
+      "SMALL":[
+         "glare",
+         "gradient",
+         "single color",
+         "funky"
+      ],
+      "MONACLE":[
+         "gold chain",
+         "right position",
+         "colored chain",
+         "left position"
+      ],
+      "SERIOUS":[
+         "colored frame",
+         "colored glasses",
+         "black frame",
+         "black"
+      ],
+      "VR_LOW":[
+         
+      ]
+   },
+   "MOUTH":{
+      "DEFAULT_MOUTH":[
+         
+      ],
+      "WIDE_MOUTH":[
+         
+      ],
+      "DOT_MOUTH":[
+         
+      ]
+   },
+   "MOUTH_ACCESSORY":{
+      "JOINT":[
+         "right facing",
+         "left facing"
+      ],
+      "PIPE":[
+         "right facing",
+         "left facing"
+      ],
+      "CIGARETTE":[
+         "left facing",
+         "right facing"
+      ]
+   },
+   "NECKLACE":{
+      "PENDANT":[
+         "high",
+         "colored chain",
+         "normal height",
+         "gold chain"
+      ]
+   },
+   "JACKET":{
+      "SMALL_VEST":[
+         
+      ],
+      "VEST":[
+         null,
+         "colored bracelet",
+         "black bracelet"
+      ],
+      "LOW_SWEATER":[
+         null,
+         "black bracelet",
+         "colored bracelet"
+      ],
+      "V_NECK":[
+         null,
+         "black bracelet",
+         "colored bracelet"
+      ],
+      "SWEATER":[
+         null,
+         "black bracelet",
+         "colored bracelet"
+      ],
+      "LOW_JACKET":[
+         null,
+         "black bracelet",
+         "colored bracelet"
+      ]
+   },
+    "BODY":{
+      "DEFAULT":[
+         "soft color scheme",
+         "light color scheme",
+         "default color scheme",
+         "hard color scheme",
+         "pastel color scheme",
+         "pale color scheme",
+         "colored paws"
+      ]
+   },
+    "BELLY":{
+       "DEFAULT":[
+          
+       ],
+       "BIG_BELLY":[
+          
+       ],
+       "HEART_BELLY":[
+          "shifted right"
+       ]
+    },
+    "STRIPES":{
+      "Z_STRIPES":[
+         "z stripes",
+         "right side"
+      ],
+      "DIAGONAL_STRIPES":[
+         "diagonal stripes",
+         "right side",
+         "normal position",
+         "lower position",
+         "left side"
+      ],
+      "NONE":[
+         
+      ],
+      "STRAIGHT_STRIPES":[
+         "straight stripes",
+         "lower position",
+         "left side",
+         "right side",
+         "normal position"
+      ]
+   },
+    "TAIL":{
+       "EXTRA_LONG_PERKY_TAIL":[
+          
+       ],
+       "LONG_TAIL":[
+          
+       ],
+       "DEFAULT":[
+          
+       ],
+       "TWISTY_TAIL":[
+          
+       ],
+       "XXS_TAIL":[
+          
+       ],
+       "PERKY_TAIL":[
+          
+       ],
+       "XS_TAIL":[
+          
+       ],
+       "EXTRA_LONG_TAIL":[
+          
+       ],
+       "PERKY_LONG_TAIL":[
+          
+       ],
+       "STUBBY_TAIL":[
+          
+       ],
+       "SHORT_TAIL":[
+          
+       ]
+    }
+ }

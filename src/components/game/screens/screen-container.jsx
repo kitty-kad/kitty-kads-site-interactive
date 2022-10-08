@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect, useMemo } from "react";
 import { GameContext } from "../game-context";
 import { SCREENS } from "../consts";
-import { Search } from "../search-utils";
+import { SearchFilters } from "../search-utils";
 
 import {
   useGetMyKitties,
@@ -10,20 +10,38 @@ import {
   useAmountLeftToAdopt,
   ADMIN_ADDRESS,
 } from "../pact-functions";
-import { getImagesForIds } from "../server";
+import { getImagesForIds, getKittiesForFilters } from "../server";
 import { PactContext } from "../../../wallet/pact-wallet";
 
 const PAGE_SIZE = 100;
 
 export default function ScreenContainer(props) {
-  const { currScreen } = useContext(GameContext);
-  const [page, setPage] = useState(0);
+  const { currScreen, setAllKittiesData, allKittiesData } =
+    useContext(GameContext);
+  // const [kittiesToShow, setKittiesToShow] = useState(null);
+  const getAllKitties = useGetAllKitties();
+
+  // Initialize all kitties data
+  useState(() => {
+    (async () => {
+      const allIds = await getAllKitties();
+      const sortedAllIds = sortIds(allIds);
+      const allIdsToSave = [];
+      for (let i = 0; i < sortedAllIds.length; i++) {
+        allIdsToSave.push(null);
+      }
+      setAllKittiesData(allIdsToSave);
+    })();
+  });
+
   return (
     <div style={screensStyle}>
       {currScreen == null && <Landing />}
-      {currScreen === SCREENS.MY_KITTIES && <MyKitties />}
-      {currScreen === SCREENS.ALL_KITTIES && (
-        <AllKitties page={page} setPage={setPage} />
+      {currScreen === SCREENS.MY_KITTIES && allKittiesData != null && (
+        <MyKitties />
+      )}
+      {currScreen === SCREENS.ALL_KITTIES && allKittiesData != null && (
+        <AllKitties />
       )}
       {currScreen === SCREENS.ADOPT && <AdoptKitties />}
       {currScreen === SCREENS.DETAILS && <SelectedKitty />}
@@ -253,97 +271,144 @@ function idsToFetch(idsNeeded, allKittiesData) {
   return toFetch;
 }
 
-function idsToShow(page, searchParams) {
-  if (searchParams == null) {
-    return idsNeededForPage(page);
+// function idsToShow(page, allKittiesData) {
+//   // if (searchParams == null) {
+//   return idsNeededForPage(page, allKittiesData);
+//   // } else if (searchParams.id != null) return [`1:${searchParams.id - 1}`];
+//   // return [];
+//   // }
+// }
+
+function getNewAllKittiesData(allKittiesData, fetchedData) {
+  const updatedData = [...allKittiesData];
+  for (let i = 0; i < fetchedData.length; i++) {
+    const id = fetchedData[i].id;
+    const index = idToIndex(id);
+    updatedData[index] = fetchedData[i];
   }
-  return [`1:${searchParams.id - 1}`];
+  return updatedData;
 }
 
-function AllKitties({ page, setPage }) {
-  const { allKittiesData, setAllKittiesData } = useContext(GameContext);
-  const [pages, setPages] = useState(allKittiesData?.length);
-  const [searchParams, setSearchParams] = useState(null);
-  const getAllKitties = useGetAllKitties();
+function getPagesCount(kittiesCount) {
+  return Math.ceil(kittiesCount / PAGE_SIZE);
+}
 
-  function getPagesCount(kittiesCount) {
-    return Math.ceil(kittiesCount / PAGE_SIZE);
-  }
+function getKittiesToShowData(ids, allKittiesData) {
+  return ids.map((id) => allKittiesData[idToIndex(id)]);
+}
 
-  // Initialize things
-  useEffect(() => {
-    if (allKittiesData != null) {
-      return;
+function AllKitties() {
+  const {
+    allKittiesData,
+    setAllKittiesData,
+    pagesInfo,
+    setPagesInfo,
+    searchParams,
+    setSearchParams,
+  } = useContext(GameContext);
+  // const pages = getPagesCount(pagesInfo?.kittiesCount ?? 0);
+
+  const fetchNeededImagesAndSetIdsToShowForPage = async (
+    idsToShow,
+    newPage
+  ) => {
+    const idsNotLoaded = idsToFetch(idsToShow, allKittiesData);
+    setPagesInfo({ page: 0 });
+    let newAllData = allKittiesData;
+    if (idsNotLoaded.length !== 0) {
+      const fetchedData = await getImagesForIds(idsNotLoaded);
+      newAllData = getNewAllKittiesData(allKittiesData, fetchedData);
+      setAllKittiesData(newAllData);
     }
-    (async () => {
-      const allIds = await getAllKitties();
-      const sortedAllIds = sortIds(allIds);
-      const allIdsToSave = [];
-      for (let i = 0; i < sortedAllIds.length; i++) {
-        allIdsToSave.push(null);
-      }
-      const pagesCount = getPagesCount(allIdsToSave.length);
-      setAllKittiesData(allIdsToSave);
-      setPages(pagesCount);
-    })();
-  }, [getAllKitties, setAllKittiesData, allKittiesData]);
+    const newKittiesToShow = getKittiesToShowData(idsToShow, newAllData);
+    setPagesInfo({
+      kittiesToShow: newKittiesToShow,
+      page: newPage,
+      pages: getPagesCount(allKittiesData.length),
+    });
+  };
 
-  // Update current data to show (including doing any fetching)
-  useEffect(() => {
-    // Not ready to start
+  const updateSearchParams = (newSearchParams, newPage = 0) => {
+    // Not ready to search backend
     if (allKittiesData == null) {
       return;
     }
-    let ids = idsToShow(page, searchParams);
-    const idsNotLoaded = idsToFetch(ids, allKittiesData);
-    if (idsNotLoaded.length === 0) {
+    if (newSearchParams.id != null) {
+      fetchNeededImagesAndSetIdsToShowForPage([newSearchParams.id], 0);
+      setSearchParams(newSearchParams);
       return;
     }
-    const fetchNeededImagesAndSetIdsToShow = async (idsNotLoaded) => {
-      const fetchedImages = await getImagesForIds(idsNotLoaded);
-      const updatedData = [...allKittiesData];
-      for (let i = 0; i < fetchedImages.length; i++) {
-        const id = fetchedImages[i].id;
-        const index = idToIndex(id);
-        updatedData[index] = fetchedImages[i];
-      }
-      setAllKittiesData(updatedData);
+    if (newSearchParams?.filters == null) {
+      const idsToShow = idsNeededForPage(0);
+      fetchNeededImagesAndSetIdsToShowForPage(idsToShow, 0);
+      setSearchParams(newSearchParams);
+      return;
+    }
+    const searchFiltersFromServer = async (params, newPage) => {
+      setPagesInfo({});
+      setSearchParams(params);
+      const {
+        kitties: fetchedData,
+        pages,
+        count,
+      } = await getKittiesForFilters({
+        ...params,
+        offset: PAGE_SIZE * newPage,
+      });
+      const newAllData = getNewAllKittiesData(allKittiesData, fetchedData);
+      setAllKittiesData(newAllData);
+      const idsToShow = fetchedData.map((kitty) => kitty.id);
+      const newKittiesToShow = getKittiesToShowData(idsToShow, newAllData);
+      setPagesInfo({
+        kittiesToShow: newKittiesToShow,
+        page: newPage,
+        pages,
+        count,
+      });
     };
-    fetchNeededImagesAndSetIdsToShow(idsNotLoaded, allKittiesData);
-  }, [page, allKittiesData, setAllKittiesData, searchParams]);
+    searchFiltersFromServer(newSearchParams, newPage);
+  };
 
-  const kitties = useMemo(() => {
-    if (allKittiesData == null) {
-      return null;
+  const updatePage = (newPage) => {
+    if (searchParams?.filters != null) {
+      updateSearchParams(searchParams, newPage);
+      return;
     }
-    let ids = idsToShow(page, searchParams);
-    const arr = [];
-    for (let i = 0; i < ids.length; i++) {
-      const index = idToIndex(ids[i]);
-      if (allKittiesData[index] == null) {
-        return null;
-      }
-      arr.push(allKittiesData[index]);
+    // Fetch specific ids to show if not loaded and show all ids
+    const idsToShow = idsNeededForPage(newPage);
+    fetchNeededImagesAndSetIdsToShowForPage(idsToShow, newPage);
+  };
+
+  // Handle first load
+  useEffect(() => {
+    if (pagesInfo?.kittiesToShow == null) {
+      updatePage(0);
     }
-    return arr;
-  }, [allKittiesData, page, searchParams]);
-  const amount = allKittiesData?.length;
+  }, []);
+
+  let headerText = "";
+  if (pagesInfo?.count != null) {
+    headerText = `${pagesInfo.count} kitties found`;
+  } else if (
+    Object.keys(searchParams ?? {}).length === 0 &&
+    allKittiesData?.length != null
+  ) {
+    headerText = `${allKittiesData.length} ${kittiesStr(
+      allKittiesData.length
+    )} adopted around the world`;
+  }
 
   return (
     <CenterColumn>
       <KittiesList
-        pages={pages}
-        page={page}
-        setPage={setPage}
-        kitties={kitties}
+        pages={pagesInfo?.pages ?? 1}
+        page={pagesInfo?.page ?? 0}
+        setPage={updatePage}
+        kitties={pagesInfo?.kittiesToShow}
         loading={<Loading text="Fetching kitties..." />}
         empty={<p style={{ textAlign: "center" }}>No kitties found :O</p>}
-        header={
-          searchParams == null
-            ? `${amount} ${kittiesStr(amount)} adopted around the world`
-            : "Found it!"
-        }
-        search={<Search onSearch={setSearchParams} />}
+        header={headerText}
+        search={<SearchFilters setSearchParams={updateSearchParams} />}
       />
     </CenterColumn>
   );
@@ -424,10 +489,11 @@ function ListNav({ pages, page, setPage }) {
       (i === 1 && curr !== 2) ||
       (i === pagesArr.length - 2 && curr !== pages - 1)
     ) {
-      navButtons.push(<p>...</p>);
+      navButtons.push(<p key={i}>...</p>);
     } else {
       navButtons.push(
         <NavButton
+          key={i}
           text={curr}
           isSelected={page + 1 === curr}
           onClick={() => setPage(curr - 1)}
@@ -500,7 +566,6 @@ function FeaturesInfo(allFeatures) {
 
 function Feature(feature) {
   const subFeatures = feature.features?.filter((f) => f != null && f !== "");
-  console.log(subFeatures);
   return (
     <div>
       <FeatureText
@@ -540,7 +605,7 @@ function prettifyUnderscoreText(field) {
 }
 
 function KittyCard({ kitty, showFeatures, notClickable }) {
-  const { id, base64 } = kitty;
+  const { id } = kitty;
   const number = parseInt(kitty.id.split(":")[1]) + 1;
   const imgStyle = smallKittyStyle;
   const { setCurrKitty, setCurrScreen } = useContext(GameContext);
@@ -598,7 +663,11 @@ function KittyCard({ kitty, showFeatures, notClickable }) {
               margin: 0,
             }}
           >{`(ID: ${id})`}</p>
-          <KittyImg base64={base64} extraStyle={imgStyle} />
+          <KittyImg
+            // TODO standardise naming
+            base64={kitty.base64 ?? kitty.base_64}
+            extraStyle={imgStyle}
+          />
           <p style={{ fontSize: "1em", marginBottom: 0, textAlign: "center" }}>
             Gen: 0
           </p>
@@ -686,7 +755,7 @@ function kittiesStr(amountOfKitties) {
 
 const screensStyle = {
   display: "flex",
-  height: "600px",
+  height: "700px",
   width: "100%",
   // overflowY: "scroll",
   "&::WebkitScrollbar": { width: 5 },
