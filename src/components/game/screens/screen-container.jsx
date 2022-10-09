@@ -524,6 +524,7 @@ function KittyCard({ kitty, showFeatures, notClickable }) {
   const number = parseInt(kitty.id.split(":")[1]) + 1;
   const imgStyle = smallKittyStyle;
   const { setCurrKitty, setCurrScreen } = useContext(GameContext);
+  const features = kitty?.allFeatures ?? kitty?.features;
   return (
     <div
       style={{ cursor: notClickable === true ? "normal" : "pointer" }}
@@ -554,11 +555,7 @@ function KittyCard({ kitty, showFeatures, notClickable }) {
         }}
       >
         {showFeatures && (
-          <div>
-            {kitty.allFeatures != null && (
-              <FeaturesInfo {...kitty?.allFeatures} />
-            )}
-          </div>
+          <div>{features != null && <FeaturesInfo {...features} />}</div>
         )}
         <div
           style={{
