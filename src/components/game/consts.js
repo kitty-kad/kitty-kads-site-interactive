@@ -5,5 +5,12 @@ export const SCREENS = {
   DETAILS: "DETAILS",
 };
 
+export const KITTY_ACTIONS = {
+  CAN_BUY: "CAN_BUY",
+  LOGIN_TO_BUY: "LOGIN_TO_BUY",
+  REMOVE_FROM_SALE: "REMOVE_FROM_SALE",
+  PUT_ON_SALE: "PUT_ON_SALE",
+};
+
 // const CONSTS = { SCREENS };
 // export default CONSTS;

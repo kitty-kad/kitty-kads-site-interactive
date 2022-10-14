@@ -1,47 +1,38 @@
 import React, { useContext, useState, useEffect, useMemo } from "react";
 import { GameContext } from "../game-context";
-import { SCREENS } from "../consts";
+import { SCREENS, KITTY_ACTIONS } from "../consts";
 import { SearchFilters } from "../search-utils";
+import Button from "@mui/material/Button";
 
 import {
+  useFetchAllKittiesInit,
+  useImageSearchAndUpdateHelpers,
+  getPagesCount,
+  idToIndex,
+} from "./screen-helpers";
+import {
   useGetMyKitties,
-  useGetAllKitties,
   useGetKittiesOnSale,
-  ADMIN_ADDRESS,
+  useGetKittyActions,
+  useGetPricesForKitties,
 } from "../pact-functions";
-import { getImagesForIds, getKittiesForFilters } from "../server";
 import { PactContext } from "../../../wallet/pact-wallet";
 
-const PAGE_SIZE = 100;
-
 export default function ScreenContainer(props) {
-  const { currScreen, setAllKittiesData, allKittiesData } =
-    useContext(GameContext);
-  // const [kittiesToShow, setKittiesToShow] = useState(null);
-  const getAllKitties = useGetAllKitties();
-
-  // Initialize all kitties data
-  useState(() => {
-    (async () => {
-      const allIds = await getAllKitties();
-      const sortedAllIds = sortIds(allIds);
-      const allIdsToSave = [];
-      for (let i = 0; i < sortedAllIds.length; i++) {
-        allIdsToSave.push(null);
-      }
-      setAllKittiesData(allIdsToSave);
-    })();
-  });
+  const { currScreen, allKittiesData } = useContext(GameContext);
+  useFetchAllKittiesInit();
 
   return (
     <div style={screensStyle}>
       {currScreen == null && <Landing />}
-      {currScreen === SCREENS.MY_KITTIES && allKittiesData != null && (
-        <MyKitties />
-      )}
-      {currScreen === SCREENS.ALL_KITTIES && allKittiesData != null && (
-        <AllKitties />
-      )}
+      {allKittiesData != null ? (
+        <>
+          {currScreen === SCREENS.MY_KITTIES && <MyKitties />}
+          {currScreen === SCREENS.ALL_KITTIES && allKittiesData != null && (
+            <AllKitties />
+          )}
+        </>
+      ) : null}
       {currScreen === SCREENS.BUY && <BuyKitties />}
       {currScreen === SCREENS.DETAILS && <SelectedKitty />}
     </div>
@@ -65,22 +56,33 @@ function Landing() {
 
 function MyKitties() {
   const { account } = useContext(PactContext);
+  const { pagesInfo } = useContext(GameContext);
+  const {
+    updateSearchParams,
+    updatePageNum,
+    handleFirstLoad,
+    getHeaderText,
+    getCurrKittiesAndIsLoading,
+  } = useImageSearchAndUpdateHelpers();
+
+  const currScreen = SCREENS.MY_KITTIES;
+
   const getMyKitties = useGetMyKitties();
-  const { myKitties, setMyKitties } = useContext(GameContext);
   useEffect(() => {
     if (account?.account == null) {
       return;
     }
-    const fetchKitties = async () => {
-      const kittyIds = (await getMyKitties()).map((kitty) => kitty.id);
-      const images = await getImagesForIds(kittyIds);
-      setMyKitties(images);
-    };
-    fetchKitties();
+    handleFirstLoad(async () => {
+      return (await getMyKitties()).map((kitty) => kitty.id);
+    }, currScreen);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [account]);
+  }, [account, pagesInfo]);
 
-  const amount = myKitties?.length ?? 0;
+  const { page, allResultsIds, currIds } = pagesInfo[currScreen] ?? {};
+
+  const { currKitties, stillLoading } = useMemo(() => {
+    return getCurrKittiesAndIsLoading(currIds);
+  }, [currIds, getCurrKittiesAndIsLoading]);
 
   if (account?.account == null) {
     return (
@@ -92,238 +94,153 @@ function MyKitties() {
       </KittyGuideWithContent>
     );
   }
+
+  const headerText = getHeaderText(currScreen, "were given a home by you");
   return (
     <KittiesList
-      kitties={myKitties}
+      pages={getPagesCount(allResultsIds?.length ?? 1)}
+      page={page ?? 0}
+      setPage={(number) => updatePageNum(number, currScreen)}
+      kitties={stillLoading ? null : currKitties}
       loading={<Loading text="Looking for your kitties..." />}
-      empty={
-        <p style={{ textAlign: "center" }}>
-          You don't have any kitties yet. <br /> Try adopting one to get started
-        </p>
-      }
-      header={
-        myKitties != null && myKitties.length > 0
-          ? `You have given ${amount} ${kittiesStr(amount)} a home`
-          : null
+      empty={<p style={{ textAlign: "center" }}>No kitties found :O</p>}
+      header={headerText}
+      search={
+        <SearchFilters
+          setSearchParams={(params) => updateSearchParams(params, currScreen)}
+        />
       }
     />
   );
 }
 
 function BuyKitties() {
-  const { account } = useContext(PactContext);
-  // const hasAccount = account?.account != null;
+  const { pagesInfo, allKittiesData, setAllKittiesData } =
+    useContext(GameContext);
+  const {
+    updateSearchParams,
+    updatePageNum,
+    handleFirstLoad,
+    getHeaderText,
+    getCurrKittiesAndIsLoading,
+  } = useImageSearchAndUpdateHelpers();
 
-  // let content = <BuyKittiesList />;
-  let content = (
-    <>
-      <p>Coming soon!</p>
-      <p>
-        For now you can trade on <br />
-        <div
-          style={{ textDecoration: "underline", cursor: "pointer" }}
-          onClick={() => window.open("https://www.arkade.fun/", "_blank")}
-        >
-          arkade.fun
-        </div>
-      </p>
-    </>
-  );
-  // if (true) {
-  // content = (
-  //   <>
-  //     <p> Current sale is all sold out :O</p>
-  //     <p>Final 5,000 Gen 0s will be live on the 23rd of April.</p>
-  //   </>
-  // );
-  // } else {
-  //   content = (
-  //     <>
-  //       <p>Can't adopt without a wallet!</p>
-  //       <ConnectWalletText />
-  //     </>
-  //   );
-  // } else {
-  // content = <AdoptKittiesInteraction />;
-  // }
+  const currScreen = SCREENS.BUY;
 
-  return (
-    <KittyGuideWithContent>
-      <div>{content}</div>
-    </KittyGuideWithContent>
-  );
-}
-
-function BuyKittiesList() {
   const getKittiesOnSale = useGetKittiesOnSale();
+  const getPricesForKitties = useGetPricesForKitties();
+
   useEffect(() => {
     (async () => {
-      const ids = await getKittiesOnSale();
-      console.log(ids);
+      const ids = (await getKittiesOnSale()).map((kitty) => kitty.id);
+      handleFirstLoad(async () => ids, currScreen);
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  return null;
-  // const getKittiesOnSale = useGetKittiesOnSale();
-}
 
-function idToIndex(id) {
-  return parseInt(id.split(":")[1]);
-}
-function sortIds(ids) {
-  // Copy the ids so we don't mutate the original and sort
-  return [...ids].sort((id1, id2) => idToIndex(id1) - idToIndex(id2));
-}
+  const { page, allResultsIds, currIds, defaultIds } =
+    pagesInfo[currScreen] ?? {};
 
-function idsNeededForPage(page) {
-  const ids = [];
-  for (let i = 0; i < PAGE_SIZE; i++) {
-    ids.push(`1:${page * PAGE_SIZE + i}`);
-  }
-  return ids;
-}
-
-function idsToFetch(idsNeeded, allKittiesData) {
-  const toFetch = [];
-  for (let i = 0; i < idsNeeded.length; i++) {
-    const id = idsNeeded[i];
-    const index = idToIndex(id);
-    if (allKittiesData[index] == null) {
-      toFetch.push(id);
+  useEffect(() => {
+    if (defaultIds == null) {
+      return;
     }
-  }
-  return toFetch;
-}
+    (async () => {
+      const idsWithoutPrices = [];
+      for (let i = 0; i < defaultIds.length; i++) {
+        const id = defaultIds[i];
+        const index = idToIndex(id);
+        if (allKittiesData[index].price == null) {
+          idsWithoutPrices.push(id);
+        }
+      }
+      if (idsWithoutPrices.length === 0) {
+        return;
+      }
+      const prices = (await getPricesForKitties(idsWithoutPrices)).map(
+        (kitty) => kitty.price
+      );
+      if (prices.length !== idsWithoutPrices.length) {
+        console.log("ERROR: Invalid amount of prices returned");
+        return;
+      }
+      const newAllKittiesData = [...allKittiesData];
+      for (let i = 0; i < idsWithoutPrices.length; i++) {
+        const id = idsWithoutPrices[i];
+        const index = idToIndex(id);
+        newAllKittiesData[index].price = prices[i];
+      }
+      setAllKittiesData(newAllKittiesData);
+    })();
+  }, [defaultIds, allKittiesData, setAllKittiesData, getPricesForKitties]);
 
-function getNewAllKittiesData(allKittiesData, fetchedData) {
-  const updatedData = [...allKittiesData];
-  for (let i = 0; i < fetchedData.length; i++) {
-    const id = fetchedData[i].id;
-    const index = idToIndex(id);
-    updatedData[index] = fetchedData[i];
-  }
-  return updatedData;
-}
+  const { currKitties, stillLoading } = useMemo(() => {
+    return getCurrKittiesAndIsLoading(currIds);
+  }, [currIds, getCurrKittiesAndIsLoading]);
 
-function getPagesCount(kittiesCount) {
-  return Math.ceil(kittiesCount / PAGE_SIZE);
-}
-
-function getKittiesToShowData(ids, allKittiesData) {
-  return ids.map((id) => allKittiesData[idToIndex(id)]);
+  const headerText = getHeaderText(currScreen, "are up for sale");
+  return (
+    <KittiesList
+      pages={getPagesCount(allResultsIds?.length ?? 1)}
+      page={page ?? 0}
+      setPage={(number) => updatePageNum(number, currScreen)}
+      kitties={stillLoading ? null : currKitties}
+      loading={<Loading text="Looking for kitties on sale..." />}
+      empty={<p style={{ textAlign: "center" }}>No kitties found :O</p>}
+      header={headerText}
+      showPrice={true}
+      search={
+        <SearchFilters
+          setSearchParams={(params) => updateSearchParams(params, currScreen)}
+        />
+      }
+    />
+  );
 }
 
 function AllKitties() {
+  const { allKittiesData, pagesInfo } = useContext(GameContext);
   const {
-    allKittiesData,
-    setAllKittiesData,
-    pagesInfo,
-    setPagesInfo,
-    searchParams,
-    setSearchParams,
-  } = useContext(GameContext);
-  // const pages = getPagesCount(pagesInfo?.kittiesCount ?? 0);
+    updateSearchParams,
+    updatePageNum,
+    handleFirstLoad,
+    getHeaderText,
+    getCurrKittiesAndIsLoading,
+  } = useImageSearchAndUpdateHelpers();
 
-  const fetchNeededImagesAndSetIdsToShowForPage = async (
-    idsToShow,
-    newPage
-  ) => {
-    const idsNotLoaded = idsToFetch(idsToShow, allKittiesData);
-    setPagesInfo({ page: 0 });
-    let newAllData = allKittiesData;
-    if (idsNotLoaded.length !== 0) {
-      const fetchedData = await getImagesForIds(idsNotLoaded);
-      newAllData = getNewAllKittiesData(allKittiesData, fetchedData);
-      setAllKittiesData(newAllData);
-    }
-    const newKittiesToShow = getKittiesToShowData(idsToShow, newAllData);
-    setPagesInfo({
-      kittiesToShow: newKittiesToShow,
-      page: newPage,
-      pages: getPagesCount(allKittiesData.length),
-    });
-  };
-
-  const updateSearchParams = (newSearchParams, newPage = 0) => {
-    // Not ready to search backend
-    if (allKittiesData == null) {
-      return;
-    }
-    if (newSearchParams.id != null) {
-      fetchNeededImagesAndSetIdsToShowForPage([newSearchParams.id], 0);
-      setSearchParams(newSearchParams);
-      return;
-    }
-    if (newSearchParams?.filters == null) {
-      const idsToShow = idsNeededForPage(0);
-      fetchNeededImagesAndSetIdsToShowForPage(idsToShow, 0);
-      setSearchParams(newSearchParams);
-      return;
-    }
-    const searchFiltersFromServer = async (params, newPage) => {
-      setPagesInfo({});
-      setSearchParams(params);
-      const {
-        kitties: fetchedData,
-        pages,
-        count,
-      } = await getKittiesForFilters({
-        ...params,
-        offset: PAGE_SIZE * newPage,
-      });
-      const newAllData = getNewAllKittiesData(allKittiesData, fetchedData);
-      setAllKittiesData(newAllData);
-      const idsToShow = fetchedData.map((kitty) => kitty.id);
-      const newKittiesToShow = getKittiesToShowData(idsToShow, newAllData);
-      setPagesInfo({
-        kittiesToShow: newKittiesToShow,
-        page: newPage,
-        pages,
-        count,
-      });
-    };
-    searchFiltersFromServer(newSearchParams, newPage);
-  };
-
-  const updatePage = (newPage) => {
-    if (searchParams?.filters != null) {
-      updateSearchParams(searchParams, newPage);
-      return;
-    }
-    // Fetch specific ids to show if not loaded and show all ids
-    const idsToShow = idsNeededForPage(newPage);
-    fetchNeededImagesAndSetIdsToShowForPage(idsToShow, newPage);
-  };
+  const currScreen = SCREENS.ALL_KITTIES;
 
   // Handle first load
   useEffect(() => {
-    if (pagesInfo?.kittiesToShow == null) {
-      updatePage(0);
-    }
+    handleFirstLoad(async () => {
+      return allKittiesData.map((kitty) => kitty.id);
+    }, currScreen);
   }, []);
 
-  let headerText = "";
-  if (pagesInfo?.count != null) {
-    headerText = `${pagesInfo.count} kitties found`;
-  } else if (
-    Object.keys(searchParams ?? {}).length === 0 &&
-    allKittiesData?.length != null
-  ) {
-    headerText = `${allKittiesData.length} ${kittiesStr(
-      allKittiesData.length
-    )} adopted around the world`;
-  }
+  const currPageInfo = pagesInfo[currScreen] ?? {};
+  const { currIds, allResultsIds, page } = currPageInfo;
+
+  const { currKitties, stillLoading } = useMemo(() => {
+    return getCurrKittiesAndIsLoading(currIds);
+  }, [currIds, getCurrKittiesAndIsLoading]);
+
+  const headerText = getHeaderText(currScreen, "adopted around the world");
 
   return (
     <CenterColumn>
       <KittiesList
-        pages={pagesInfo?.pages ?? 1}
-        page={pagesInfo?.page ?? 0}
-        setPage={updatePage}
-        kitties={pagesInfo?.kittiesToShow}
+        pages={getPagesCount(allResultsIds?.length ?? 1)}
+        page={page ?? 0}
+        setPage={(number) => updatePageNum(number, currScreen)}
+        kitties={stillLoading ? null : currKitties}
         loading={<Loading text="Fetching kitties..." />}
         empty={<p style={{ textAlign: "center" }}>No kitties found :O</p>}
         header={headerText}
-        search={<SearchFilters setSearchParams={updateSearchParams} />}
+        search={
+          <SearchFilters
+            setSearchParams={(params) => updateSearchParams(params, currScreen)}
+          />
+        }
       />
     </CenterColumn>
   );
@@ -338,6 +255,7 @@ function KittiesList({
   page,
   setPage,
   search,
+  showPrice,
 }) {
   const hasKitties = kitties != null && kitties.length > 0;
   const extraStyle = { overflowY: "scroll" };
@@ -375,7 +293,9 @@ function KittiesList({
         {kitties != null && (
           <>
             {kitties.map((kitty) => {
-              return <KittyCard key={kitty.id} kitty={kitty} />;
+              return (
+                <KittyCard key={kitty.id} kitty={kitty} showPrice={showPrice} />
+              );
             })}
             <ListNav pages={pages} page={page} setPage={setPage} />
           </>
@@ -519,74 +439,146 @@ function prettifyUnderscoreText(field) {
   );
 }
 
-function KittyCard({ kitty, showFeatures, notClickable }) {
+function KittyCard({ kitty, showFeatures, notClickable, showPrice }) {
   const { id } = kitty;
   const number = parseInt(kitty.id.split(":")[1]) + 1;
   const imgStyle = smallKittyStyle;
-  const { setCurrKitty, setCurrScreen } = useContext(GameContext);
+  const { setCurrKitty, setCurrScreen, allKittiesData, setAllKittiesData } =
+    useContext(GameContext);
+  const { account } = useContext(PactContext);
   const features = kitty?.allFeatures ?? kitty?.features;
+  const getActions = useGetKittyActions();
+  const [availableActions, setAvailableActions] = useState(null);
+  useEffect(() => {
+    (async () => {
+      if (showFeatures !== true || availableActions != null) {
+        return;
+      }
+      const userAccount = account?.account;
+      const { nftData, marketData } = await getActions(id);
+      let onSale = false;
+      if (marketData != null) {
+        onSale = marketData.owner === nftData?.owner;
+      }
+      const isOwner = userAccount != null && userAccount === nftData?.owner;
+      const tempActions = [];
+      if (onSale) {
+        if (isOwner) {
+          tempActions.push(KITTY_ACTIONS.REMOVE_FROM_SALE);
+        } else {
+          if (userAccount == null) {
+            tempActions.push(KITTY_ACTIONS.LOGIN_TO_BUY);
+          } else {
+            tempActions.push(KITTY_ACTIONS.CAN_BUY);
+          }
+        }
+      } else if (isOwner) {
+        tempActions.push(KITTY_ACTIONS.PUT_ON_SALE);
+      }
+      setAvailableActions(tempActions);
+
+      // If we're updating actions, also try to get the latest price and update
+      if (kitty.price !== marketData?.price) {
+        const index = idToIndex(id);
+        const newAllKittiesData = [...allKittiesData];
+        newAllKittiesData[index].price = marketData?.price;
+        setAllKittiesData(newAllKittiesData);
+      }
+    })();
+  }, [
+    showFeatures,
+    account?.account,
+    setAvailableActions,
+    getActions,
+    availableActions,
+    id,
+    allKittiesData,
+    setAllKittiesData,
+    kitty,
+  ]);
+
   return (
     <div
       style={{ cursor: notClickable === true ? "normal" : "pointer" }}
-      onClick={
-        () => {
-          if (notClickable === true) {
-            return;
-          }
-          if (id === "1:0") {
-            alert(
-              "This is the original Kitty Kad. It has no special features and can't be interacted with.\nPlease select another one 🐱"
-            );
-            return;
-          }
-          setCurrScreen(SCREENS.DETAILS);
-          setCurrKitty(kitty);
+      onClick={() => {
+        if (notClickable === true) {
+          return;
         }
-        // navigator.clipboard.writeText(JSON.stringify([genes, items]))
-      }
+        if (id === "1:0") {
+          alert(
+            "This is the original Kitty Kad. It has no special features and can't be interacted with.\nPlease select another one 🐱"
+          );
+          return;
+        }
+        setCurrScreen(SCREENS.DETAILS);
+        setCurrKitty(kitty);
+      }}
     >
-      <CenterRow
-        extraStyle={{
-          border: "solid 2px white",
-          borderRadius: 21,
-          margin: 9,
-          padding: "10 20",
-          width: "max-content",
-        }}
-      >
-        {showFeatures && (
-          <div>{features != null && <FeaturesInfo {...features} />}</div>
-        )}
-        <div
-          style={{
-            ...centerColumnStyle,
-            maxWidth: 200,
-            minWidth: 200,
-            padding: "10 0",
+      <CenterRow>
+        <div style={{ marginRight: 20 }}>
+          {availableActions?.map((action) => {
+            return (
+              <KittyActionButton key={action} kitty={kitty} action={action} />
+            );
+          })}
+        </div>
+        <CenterRow
+          extraStyle={{
+            border: "solid 2px white",
+            borderRadius: 21,
+            margin: 9,
+            padding: "10 20",
+            width: "max-content",
           }}
         >
-          <p style={{ fontSize: "1.5em", padding: 0, margin: 0 }}>#{number} </p>
-          <p
+          {showFeatures && (
+            <div>{features != null && <FeaturesInfo {...features} />}</div>
+          )}
+          <div
             style={{
-              padding: 0,
-              margin: 0,
-              fontSize: "1em",
-              padding: 0,
-              margin: 0,
+              ...centerColumnStyle,
+              maxWidth: 200,
+              minWidth: 200,
+              padding: "10 0",
             }}
-          >{`(ID: ${id})`}</p>
-          <KittyImg
-            // TODO standardise naming
-            base64={kitty.base64 ?? kitty.base_64}
-            extraStyle={imgStyle}
-          />
-          <p style={{ fontSize: "1em", marginBottom: 0, textAlign: "center" }}>
-            Gen: 0
-          </p>
-        </div>
+          >
+            <p style={idPStyle}>#{number} </p>
+            <p style={minimalistPStyle}>{`(ID: ${id})`}</p>
+            <KittyImg
+              // TODO standardise naming
+              base64={kitty.base64 ?? kitty.base_64}
+              extraStyle={imgStyle}
+            />
+            <p
+              style={{ fontSize: "1em", marginBottom: 0, textAlign: "center" }}
+            >
+              Gen: 0
+            </p>
+            {showPrice && !showFeatures && kitty.price != null && (
+              <p style={idPStyle}>{`${kitty.price} KDA`}</p>
+            )}
+          </div>
+        </CenterRow>
       </CenterRow>
     </div>
   );
+}
+
+function KittyActionButton({ kitty, action }) {
+  const { id } = kitty;
+  const arkadeLink = `https://www.arkade.fun/market/kitty-kad/${id}`;
+  if (action === KITTY_ACTIONS.CAN_BUY) {
+    return (
+      <button
+        className="btn btn-custom btn-sm"
+        style={{ fontSize: 10, padding: "10 20" }}
+        onClick={() => window.open(arkadeLink, "_blank")}
+      >
+        {`Buy for ${kitty.price} KDA`}
+      </button>
+    );
+  }
+  return null;
 }
 
 function Loading({ text }) {
@@ -661,10 +653,6 @@ function ConnectWalletText() {
   );
 }
 
-function kittiesStr(amountOfKitties) {
-  return `kitt${amountOfKitties > 1 ? "ies" : "y"}`;
-}
-
 const screensStyle = {
   display: "flex",
   height: "700px",
@@ -689,6 +677,10 @@ sans-serif`;
 
 const defaultImageStyle = { height: 320, imageRendering: "pixelated" };
 const smallKittyStyle = { width: "100%", height: "auto" };
+
+const minimalistPStyle = { fontSize: "1em", padding: 0, margin: 0 };
+
+const idPStyle = { fontSize: "1.5em", padding: 0, margin: 0 };
 
 // function AdoptKittiesInteraction() {
 //   const adoptKitties = useAdoptKitties();

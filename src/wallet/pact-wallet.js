@@ -255,7 +255,11 @@ export const PactContextProvider = ({ children }) => {
     [chainId, gasPrice]
   );
 
-  const readFromContract = async (cmd, returnError) => {
+  const readFromContract = async (
+    cmd,
+    returnError,
+    ignoreException = false
+  ) => {
     try {
       let data = await Pact.fetch.local(cmd, networkUrl);
       if (data?.result?.status === "success") {
@@ -269,7 +273,9 @@ export const PactContextProvider = ({ children }) => {
         }
       }
     } catch (e) {
-      toast.error("Had trouble fetching data from the blockchain");
+      if (!ignoreException) {
+        toast.error("Had trouble fetching data from the blockchain");
+      }
       console.log(e);
     }
     return null;

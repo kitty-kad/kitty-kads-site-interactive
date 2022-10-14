@@ -299,7 +299,6 @@ function FeatureSelector({
         templateId,
       },
     };
-    console.log(val);
     if (subFeature != null) {
       val[templateType].features = [subFeature];
     }

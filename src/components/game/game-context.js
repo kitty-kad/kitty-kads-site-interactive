@@ -11,8 +11,9 @@ export const GameContext = createContext();
 
 export function GameContextProvider({ children }) {
   const [searchParams, setSearchParams] = useState(null);
+  const [allKittiesOnSale, setAllKittiesOnSale] = useState(null);
   const [currScreen, setCurrScreen] = useState(null);
-  const [pagesInfo, setPagesInfo] = useState({ page: 0 });
+  const [pagesInfo, setPagesInfo] = useState({});
   const [myKitties, setMyKitties] = useState(null);
   // Kitties data drops the 1: from the start
   const [allKittiesData, setAllKittiesData] = useState(null);
@@ -46,6 +47,8 @@ export function GameContextProvider({ children }) {
       setPagesInfo,
       searchParams,
       setSearchParams,
+      allKittiesOnSale,
+      setAllKittiesOnSale,
       calculateKittiesPrice: (amount) => {
         return Math.round(pricePerKitty * amount * 100) / 100;
       },
@@ -65,6 +68,8 @@ export function GameContextProvider({ children }) {
     setPagesInfo,
     searchParams,
     setSearchParams,
+    allKittiesOnSale,
+    setAllKittiesOnSale,
   ]);
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

@@ -9,7 +9,10 @@ const ADOPT_FUNC = "adopt-gen-0s-bulk";
 const OWNED_BY_FUNC = "kitties-owned-by";
 const ALL_IDS_FUNC = "all-kitties";
 const ALL_ON_SALE_FUNCTION = "get-all-on-sale";
+const MARKET_PLACE_FIELDS_FOR_ID = "get-marketplace-fields-for-id";
 const MARKET_PLACE_FIELDS_FOR_IDS = "get-marketplace-fields-for-ids";
+const NFT_FIELDS_FOR_ID = "get-nft-fields-for-id";
+
 // const WL_ROLE_FUNC = "enforce-adopt-wl-role";
 // export const ADMIN_ADDRESS =
 //   "k:fd91af358418e2c8e50a501451a41de49af01f45e34bc4f1735cab293084f7ea";
@@ -45,6 +48,40 @@ function useGetKittiesOnSale() {
     const meta = defaultMeta();
     return await readFromContract({ pactCode, meta });
   }, [defaultMeta, readFromContract]);
+  return getAllOnSale;
+}
+
+function useGetPricesForKitties() {
+  const { readFromContract, defaultMeta } = useContext(PactContext);
+  const getPricesForKitties = useCallback(
+    async (ids) => {
+      const pactCode = `(free.${KITTY_KADS_CONTRACT}.${MARKET_PLACE_FIELDS_FOR_IDS} ["price"] ${JSON.stringify(
+        ids
+      )})`;
+      const meta = defaultMeta();
+      return await readFromContract({ pactCode, meta });
+    },
+    [defaultMeta, readFromContract]
+  );
+  return getPricesForKitties;
+}
+
+function useGetKittyActions() {
+  const { readFromContract, defaultMeta } = useContext(PactContext);
+  const getAllOnSale = useCallback(
+    async (id) => {
+      const pactCodeNft = `(free.${KITTY_KADS_CONTRACT}.${NFT_FIELDS_FOR_ID} ["owner"] "${id}")`;
+      const pactCodeMarket = `(free.${KITTY_KADS_CONTRACT}.${MARKET_PLACE_FIELDS_FOR_ID} ["for-sale", "owner", "price"] "${id}")`;
+
+      const meta = defaultMeta();
+      const [nftData, marketData] = await Promise.all([
+        readFromContract({ pactCode: pactCodeNft, meta }),
+        readFromContract({ pactCode: pactCodeMarket, meta }, null, true),
+      ]);
+      return { nftData, marketData };
+    },
+    [defaultMeta, readFromContract]
+  );
   return getAllOnSale;
 }
 
@@ -123,4 +160,6 @@ export {
   useAdoptKitties,
   useAmountLeftToAdopt,
   useGetKittiesOnSale,
+  useGetKittyActions,
+  useGetPricesForKitties,
 };
