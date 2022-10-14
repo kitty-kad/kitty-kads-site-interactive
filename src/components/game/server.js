@@ -15,7 +15,6 @@ export async function getImagesForIds(imageIds) {
 
 export async function getKittiesForFilters(filters) {
   const body = filters;
-  console.log(body);
   const res = await fetchJson(url + searchSuffix, body);
   const data = await res.json();
   let kitties = data.kitties ?? [];

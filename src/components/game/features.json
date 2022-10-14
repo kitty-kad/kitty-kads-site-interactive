@@ -1,4 +1,181 @@
 {
+   "BODY":{
+      "DEFAULT":[
+         "soft color scheme",
+         "light color scheme",
+         "default color scheme",
+         "hard color scheme",
+         "pastel color scheme",
+         "pale color scheme",
+         "colored paws"
+      ]
+   },
+   "EYES":{
+      "NORMAL":[
+         "colored dimples",
+         "no dimples",
+         "white dimples",
+         "colored eyes"
+      ],
+      "DOWN":[
+         "white dimples",
+         "no dimples",
+         "colored dimples"
+      ],
+      "DIAMOND":[
+         "no dimples",
+         "empty eyes",
+         "colored eyes",
+         "white dimples",
+         "colored dimples"
+      ],
+      "CUTE":[
+         "white dimples",
+         "colored dimples",
+         "no dimples"
+      ],
+      "FLAT":[
+         "no dimples",
+         "white dimples",
+         "colored dimples"
+      ],
+      "SMALL_ANIME":[
+         "colored dimples",
+         "white dimples",
+         "no dimples"
+      ],
+      "SMALL_HIGH":[
+         "no dimples",
+         "colored dimples"
+      ],
+      "NARROW_HIGH":[
+         "no dimples",
+         "colored dimples"
+      ],
+      "NARROW":[
+         "white dimples",
+         "no dimples"
+      ],
+      "SMALL":[
+         "white dimples",
+         "colored dimples",
+         "no dimples"
+      ],
+      "SMALL_WIDE":[
+         "no dimples"
+      ]
+   },
+   "MOUTH":{
+      "DEFAULT_MOUTH":[
+         
+      ],
+      "WIDE_MOUTH":[
+         
+      ],
+      "DOT_MOUTH":[
+         
+      ]
+   },
+   "EARS":{
+      "NORMAL_EARS":[
+         "colored ear tips",
+         "no ear tips",
+         "white ear tips"
+      ],
+      "BOTH_FOLDED":[
+         
+      ],
+      "FAST_EARS":[
+         "no ear tips",
+         "white ear tips",
+         "colored ear tips"
+      ],
+      "LEFT_FOLDED":[
+         "no ear tips",
+         "colored ear tips",
+         "white ear tips"
+      ],
+      "MONKEY_EARS":[
+         "no ear tips",
+         "colored ear tips"
+      ],
+      "RIGHT_FOLDED":[
+         "colored ear tips",
+         "no ear tips",
+         "white ear tips"
+      ],
+      "PERKY_EARS":[
+         "white ear tips",
+         "no ear tips",
+         "colored ear tips"
+      ]
+   },
+   "BELLY":{
+      "DEFAULT":[
+         
+      ],
+      "BIG_BELLY":[
+         
+      ],
+      "HEART_BELLY":[
+         "shifted right"
+      ]
+   },
+   "TAIL":{
+      "EXTRA_LONG_PERKY_TAIL":[
+         
+      ],
+      "LONG_TAIL":[
+         
+      ],
+      "DEFAULT":[
+         
+      ],
+      "TWISTY_TAIL":[
+         
+      ],
+      "XXS_TAIL":[
+         
+      ],
+      "PERKY_TAIL":[
+         
+      ],
+      "XS_TAIL":[
+         
+      ],
+      "EXTRA_LONG_TAIL":[
+         
+      ],
+      "PERKY_LONG_TAIL":[
+         
+      ],
+      "STUBBY_TAIL":[
+         
+      ],
+      "SHORT_TAIL":[
+         
+      ]
+   },
+   "STRIPES":{
+      "Z_STRIPES":[
+         "right side"
+      ],
+      "DIAGONAL_STRIPES":[
+         "right side",
+         "normal position",
+         "lower position",
+         "left side"
+      ],
+      "NONE":[
+         
+      ],
+      "STRAIGHT_STRIPES":[
+         "lower position",
+         "left side",
+         "right side",
+         "normal position"
+      ]
+   },
    "HAT":{
       "LARGE_RICE_FIELD_HAT":[
          "faded",
@@ -86,78 +263,37 @@
          "k logo"
       ]
    },
-   "EARS":{
-      "NORMAL_EARS":[
-         "colored ear tips",
-         "no ear tips",
-         "white ear tips"
-      ],
-      "BOTH_FOLDED":[
+   "JACKET":{
+      "SMALL_VEST":[
          
       ],
-      "FAST_EARS":[
-         "no ear tips",
-         "white ear tips",
-         "colored ear tips"
+      "VEST":[
+         null,
+         "colored bracelet",
+         "black bracelet"
       ],
-      "LEFT_FOLDED":[
-         "no ear tips",
-         "colored ear tips",
-         "white ear tips"
+      "LOW_SWEATER":[
+         null,
+         "black bracelet",
+         "colored bracelet"
       ],
-      "MONKEY_EARS":[
-         "no ear tips",
-         "colored ear tips"
+      "V_NECK":[
+         null,
+         "black bracelet",
+         "colored bracelet"
       ],
-      "RIGHT_FOLDED":[
-         "colored ear tips",
-         "no ear tips",
-         "white ear tips"
+      "SWEATER":[
+         null,
+         "black bracelet",
+         "colored bracelet"
       ],
-      "PERKY_EARS":[
-         "white ear tips",
-         "no ear tips",
-         "colored ear tips"
+      "LOW_JACKET":[
+         null,
+         "black bracelet",
+         "colored bracelet"
       ]
    },
-    "EYES":{
-       "NORMAL":[
-          "no dimples"
-       ],
-       "DOWN":[
-          "no dimples"
-       ],
-       "DIAMOND":[
-          "no dimples",
-          "empty eyes",
-          "colored eyes"
-       ],
-       "CUTE":[
-          "no dimples"
-       ],
-       "FLAT":[
-          "no dimples"
-       ],
-       "SMALL_ANIME":[
-          "no dimples"
-       ],
-       "SMALL_HIGH":[
-          "no dimples"
-       ],
-       "NARROW_HIGH":[
-          "no dimples"
-       ],
-       "NARROW":[
-          "no dimples"
-       ],
-       "SMALL":[
-          "no dimples"
-       ],
-       "SMALL_WIDE":[
-          "no dimples"
-       ]
-    },
-    "GLASSES":{
+   "GLASSES":{
       "BASIC":[
          "black frame",
          "colored glasses",
@@ -233,17 +369,6 @@
          
       ]
    },
-   "MOUTH":{
-      "DEFAULT_MOUTH":[
-         
-      ],
-      "WIDE_MOUTH":[
-         
-      ],
-      "DOT_MOUTH":[
-         
-      ]
-   },
    "MOUTH_ACCESSORY":{
       "JOINT":[
          "right facing",
@@ -265,110 +390,5 @@
          "normal height",
          "gold chain"
       ]
-   },
-   "JACKET":{
-      "SMALL_VEST":[
-         
-      ],
-      "VEST":[
-         "colored bracelet",
-         "black bracelet"
-      ],
-      "LOW_SWEATER":[
-         "black bracelet",
-         "colored bracelet"
-      ],
-      "V_NECK":[
-         "black bracelet",
-         "colored bracelet"
-      ],
-      "SWEATER":[
-         "black bracelet",
-         "colored bracelet"
-      ],
-      "LOW_JACKET":[
-         "black bracelet",
-         "colored bracelet"
-      ]
-   },
-    "BODY":{
-      "DEFAULT":[
-         "soft color scheme",
-         "light color scheme",
-         "default color scheme",
-         "hard color scheme",
-         "pastel color scheme",
-         "pale color scheme",
-         "colored paws"
-      ]
-   },
-    "BELLY":{
-       "DEFAULT":[
-          
-       ],
-       "BIG_BELLY":[
-          
-       ],
-       "HEART_BELLY":[
-          "shifted right"
-       ]
-    },
-    "STRIPES":{
-      "Z_STRIPES":[
-         "z stripes",
-         "right side"
-      ],
-      "DIAGONAL_STRIPES":[
-         "diagonal stripes",
-         "right side",
-         "normal position",
-         "lower position",
-         "left side"
-      ],
-      "NONE":[
-         
-      ],
-      "STRAIGHT_STRIPES":[
-         "straight stripes",
-         "lower position",
-         "left side",
-         "right side",
-         "normal position"
-      ]
-   },
-    "TAIL":{
-       "EXTRA_LONG_PERKY_TAIL":[
-          
-       ],
-       "LONG_TAIL":[
-          
-       ],
-       "DEFAULT":[
-          
-       ],
-       "TWISTY_TAIL":[
-          
-       ],
-       "XXS_TAIL":[
-          
-       ],
-       "PERKY_TAIL":[
-          
-       ],
-       "XS_TAIL":[
-          
-       ],
-       "EXTRA_LONG_TAIL":[
-          
-       ],
-       "PERKY_LONG_TAIL":[
-          
-       ],
-       "STUBBY_TAIL":[
-          
-       ],
-       "SHORT_TAIL":[
-          
-       ]
-    }
- }
+   }
+}
