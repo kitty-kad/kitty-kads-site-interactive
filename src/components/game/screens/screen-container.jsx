@@ -2,7 +2,8 @@ import React, { useContext, useState, useEffect, useMemo } from "react";
 import { GameContext } from "../game-context";
 import { SCREENS, KITTY_ACTIONS } from "../consts";
 import { SearchFilters } from "../search-utils";
-import Button from "@mui/material/Button";
+import PutOnSale from "./interaction-popups/PutOnSale";
+import Transfer from "./interaction-popups/Transfer";
 
 import {
   useFetchAllKittiesInit,
@@ -15,6 +16,9 @@ import {
   useGetKittiesOnSale,
   useGetKittyActions,
   useGetPricesForKitties,
+  useBuyKitty,
+  usePutOnSale,
+  useRemoveFromSale,
 } from "../pact-functions";
 import { PactContext } from "../../../wallet/pact-wallet";
 
@@ -458,13 +462,16 @@ function KittyCard({ kitty, showFeatures, notClickable, showPrice }) {
       const { nftData, marketData } = await getActions(id);
       let onSale = false;
       if (marketData != null) {
-        onSale = marketData.owner === nftData?.owner;
+        onSale =
+          marketData.owner === nftData?.owner &&
+          marketData["for-sale"] === true;
       }
       const isOwner = userAccount != null && userAccount === nftData?.owner;
       const tempActions = [];
       if (onSale) {
         if (isOwner) {
           tempActions.push(KITTY_ACTIONS.REMOVE_FROM_SALE);
+          console.log("REMOVE FROM SALE");
         } else {
           if (userAccount == null) {
             tempActions.push(KITTY_ACTIONS.LOGIN_TO_BUY);
@@ -472,16 +479,22 @@ function KittyCard({ kitty, showFeatures, notClickable, showPrice }) {
             tempActions.push(KITTY_ACTIONS.CAN_BUY);
           }
         }
-      } else if (isOwner) {
+      }
+      if (isOwner && !onSale) {
+        console.log("NOT ON SALE");
         tempActions.push(KITTY_ACTIONS.PUT_ON_SALE);
+      }
+      if (isOwner) {
+        tempActions.push(KITTY_ACTIONS.TRANSFER);
       }
       setAvailableActions(tempActions);
 
       // If we're updating actions, also try to get the latest price and update
-      if (kitty.price !== marketData?.price) {
+      if (kitty.price !== marketData?.price || kitty.owner !== nftData?.owner) {
         const index = idToIndex(id);
         const newAllKittiesData = [...allKittiesData];
         newAllKittiesData[index].price = marketData?.price;
+        newAllKittiesData[index].owner = nftData?.owner;
         setAllKittiesData(newAllKittiesData);
       }
     })();
@@ -518,7 +531,9 @@ function KittyCard({ kitty, showFeatures, notClickable, showPrice }) {
         <div style={{ marginRight: 20 }}>
           {availableActions?.map((action) => {
             return (
-              <KittyActionButton key={action} kitty={kitty} action={action} />
+              <div style={{ paddingBottom: 10 }}>
+                <KittyActionButton key={action} kitty={kitty} action={action} />
+              </div>
             );
           })}
         </div>
@@ -565,20 +580,83 @@ function KittyCard({ kitty, showFeatures, notClickable, showPrice }) {
 }
 
 function KittyActionButton({ kitty, action }) {
+  const { setCurrScreen, allKittiesData } = useContext(GameContext);
   const { id } = kitty;
+  const currKittyData = allKittiesData[idToIndex(id)];
   const arkadeLink = `https://www.arkade.fun/market/kitty-kad/${id}`;
+  const buyKitty = useBuyKitty();
+  const putOnSale = usePutOnSale();
+  const removeFromSale = useRemoveFromSale();
+  const [isModalOpen, setIsModalOpen] = useState(false);
   if (action === KITTY_ACTIONS.CAN_BUY) {
     return (
-      <button
-        className="btn btn-custom btn-sm"
-        style={{ fontSize: 10, padding: "10 20" }}
+      <BasicActionButton
+        onClick={() =>
+          buyKitty(id, currKittyData.price, currKittyData.owner, () =>
+            setCurrScreen(SCREENS.MY_KITTIES)
+          )
+        }
+        text={`Buy for ${kitty.price} KDA`}
+      />
+    );
+  } else if (action === KITTY_ACTIONS.PUT_ON_SALE) {
+    return (
+      <>
+        <BasicActionButton
+          onClick={() => setIsModalOpen(true)}
+          // onClick={() => putOnSale(id, 6.0)}
+          text="Put on sale"
+        />
+        <PutOnSale
+          isOpen={isModalOpen}
+          close={() => setIsModalOpen(false)}
+          id={id}
+        />
+      </>
+    );
+  } else if (action === KITTY_ACTIONS.REMOVE_FROM_SALE) {
+    return (
+      <BasicActionButton
+        onClick={() => removeFromSale(id)}
+        text="Remove from sale"
+      />
+    );
+  } else if (action === KITTY_ACTIONS.LOGIN_TO_BUY) {
+    return (
+      <BasicActionButton
         onClick={() => window.open(arkadeLink, "_blank")}
-      >
-        {`Buy for ${kitty.price} KDA`}
-      </button>
+        text="Login to buy"
+      />
+    );
+  } else if (action === KITTY_ACTIONS.TRANSFER) {
+    return (
+      <>
+        <BasicActionButton
+          onClick={() => setIsModalOpen(true)}
+          // onClick={() => putOnSale(id, 6.0)}
+          text="Transfer"
+        />
+        <Transfer
+          isOpen={isModalOpen}
+          close={() => setIsModalOpen(false)}
+          id={id}
+        />
+      </>
     );
   }
   return null;
+}
+
+function BasicActionButton({ onClick, text }) {
+  return (
+    <button
+      className="btn btn-custom btn-sm"
+      style={{ fontSize: 10, padding: "10 20" }}
+      onClick={onClick}
+    >
+      {text}
+    </button>
+  );
 }
 
 function Loading({ text }) {

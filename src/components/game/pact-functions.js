@@ -2,16 +2,18 @@ import Pact from "pact-lang-api";
 import { useCallback } from "react";
 import { useContext, useState, useEffect } from "react";
 import { PactContext } from "../../wallet/pact-wallet";
-import { GameContext } from "./game-context";
 
 const KITTY_KADS_CONTRACT = "kitty-kad-kitties";
-const ADOPT_FUNC = "adopt-gen-0s-bulk";
 const OWNED_BY_FUNC = "kitties-owned-by";
 const ALL_IDS_FUNC = "all-kitties";
 const ALL_ON_SALE_FUNCTION = "get-all-on-sale";
 const MARKET_PLACE_FIELDS_FOR_ID = "get-marketplace-fields-for-id";
 const MARKET_PLACE_FIELDS_FOR_IDS = "get-marketplace-fields-for-ids";
 const NFT_FIELDS_FOR_ID = "get-nft-fields-for-id";
+const BUY_ID_ON_SALE_FUNC = "buy-id-on-sale";
+const PUT_ID_ON_SALE_FUNC = "put-id-for-sale";
+const REMOVE_ID_ON_SALE_FUNC = "remove-id-from-sale";
+const TRANSFER_FUNC = "transfer";
 
 // const WL_ROLE_FUNC = "enforce-adopt-wl-role";
 // export const ADMIN_ADDRESS =
@@ -85,32 +87,47 @@ function useGetKittyActions() {
   return getAllOnSale;
 }
 
-function useAdoptKitties() {
+function getPriceString(price) {
+  const jsonStr = JSON.stringify(price);
+  if (jsonStr.includes(".")) {
+    return jsonStr;
+  }
+  return jsonStr + ".0";
+}
+
+function useGetFeeAndToSeller() {
+  const { readFromContract, defaultMeta } = useContext(PactContext);
+  return async (priceAsString) => {
+    const pactCodeMarketFee = `(free.${KITTY_KADS_CONTRACT}.get-market-fee-from-price ${priceAsString})`;
+    const pactCodeSellerAmount = `(free.${KITTY_KADS_CONTRACT}.get-to-seller-amount-from-price ${priceAsString})`;
+    const meta = defaultMeta();
+
+    const [fee, toSeller] = await Promise.all([
+      readFromContract({ pactCode: pactCodeMarketFee, meta }),
+      readFromContract({ pactCode: pactCodeSellerAmount, meta }),
+    ]);
+    return { fee, toSeller };
+  };
+}
+
+function useBuyKitty() {
   const { account, gasPrice, chainId, netId, sendTransaction } =
     useContext(PactContext);
-  const { pricePerKitty } = useContext(GameContext);
-  return (amount, callback) => {
-    const priceToPay = amount * pricePerKitty;
-    const kittyKadsAmount = `${amount} Kitty Kad${amount === 1 ? "" : "s"}`;
-    const pactCode = `(free.${KITTY_KADS_CONTRACT}.${ADOPT_FUNC} "${account.account}" ${amount})`;
+  const getFeeAndToSeller = useGetFeeAndToSeller();
+  return async (id, price, sellerAddress, callback) => {
+    const priceAsString = getPriceString(price);
+    const { fee, toSeller } = await getFeeAndToSeller(priceAsString);
+    const pactCode = `(free.${KITTY_KADS_CONTRACT}.${BUY_ID_ON_SALE_FUNC} "${id}" "${account.account}")`;
+
     const cmd = {
       pactCode,
       caps: [
-        Pact.lang.mkCap(`Pay to adopt`, "Pay to adopt", `coin.TRANSFER`, [
-          account.account,
-          ADMIN_ADDRESS,
-          priceToPay,
-        ]),
-        Pact.lang.mkCap(
-          "Verify your account",
-          "Verify your account",
-          `free.${KITTY_KADS_CONTRACT}.ACCOUNT_GUARD`,
-          [account.account]
-        ),
-        Pact.lang.mkCap("Gas capability", "Pay gas", "coin.GAS", []),
+        buyFeesCaps(account, sellerAddress, toSeller, fee),
+        accountGuardCap(),
+        gasCap(),
       ],
       sender: account.account,
-      gasLimit: 3000 * amount,
+      gasLimit: 10000,
       gasPrice,
       chainId,
       ttl: 600,
@@ -123,43 +140,179 @@ function useAdoptKitties() {
     };
     const previewContent = (
       <p>
-        You will adopt {kittyKadsAmount} for {priceToPay} KDA
+        You will buy {id} for {price} KDA
       </p>
     );
     sendTransaction(
       cmd,
       previewContent,
-      `adopting ${kittyKadsAmount}`,
-      callback ?? (() => alert("adopted!"))
+      `buying ${id}`,
+      callback ?? (() => alert(`bought ${id}!`))
     );
   };
 }
 
-function useAmountLeftToAdopt() {
-  const { readFromContract, defaultMeta } = useContext(PactContext);
-  const [amountLeftToAdopt, setAmountLeftToAdopt] = useState(null);
-  useEffect(() => {
-    const fetch = async () => {
-      const pactCode = `( -    
-      (free.${KITTY_KADS_CONTRACT}.get-count "kitties-created-to-adopt-count-key")
-      (free.${KITTY_KADS_CONTRACT}.get-count "kitties-adopted-count-key")
-    )`;
-      const meta = defaultMeta();
-      const left = await readFromContract({ pactCode, meta }, true);
-      setAmountLeftToAdopt(left);
-    };
-    fetch();
-  }, []);
+function gasCap() {
+  return Pact.lang.mkCap("Gas capability", "Pay gas", "coin.GAS", []);
+}
 
-  return amountLeftToAdopt;
+function usePutOnSale() {
+  const { account, gasPrice, chainId, netId, sendTransaction } =
+    useContext(PactContext);
+  return async (id, price, callback) => {
+    const priceAsString = getPriceString(price);
+    const pactCode = `(free.${KITTY_KADS_CONTRACT}.${PUT_ID_ON_SALE_FUNC} "${id}" ${priceAsString})`;
+
+    const cmd = {
+      pactCode,
+      caps: [...ownerCaps(account), gasCap()],
+      sender: account.account,
+      gasLimit: 10000,
+      gasPrice,
+      chainId,
+      ttl: 600,
+      envData: {
+        "user-ks": account.guard,
+        account: account.account,
+      },
+      signingPubKey: account.guard.keys[0],
+      networkId: netId,
+    };
+    const previewContent = (
+      <p>
+        You will put {id} on sale for {price} KDA
+      </p>
+    );
+    sendTransaction(
+      cmd,
+      previewContent,
+      `putting ${id} for sale at ${price} KDA`,
+      callback ?? (() => alert(`put ${id} for sale at ${price} KDA`))
+    );
+  };
+}
+
+function useTransfer() {
+  const { account, gasPrice, chainId, netId, sendTransaction } =
+    useContext(PactContext);
+  return async (id, receiver, callback) => {
+    const pactCode = `(free.${KITTY_KADS_CONTRACT}.${TRANSFER_FUNC} "${id}" "${account.account}" "${receiver}" 1.0)`;
+    const cmd = {
+      pactCode,
+      caps: [...ownerCaps(account), gasCap()],
+      sender: account.account,
+      gasLimit: 10000,
+      gasPrice,
+      chainId,
+      ttl: 600,
+      envData: {
+        "user-ks": account.guard,
+        account: account.account,
+      },
+      signingPubKey: account.guard.keys[0],
+      networkId: netId,
+    };
+    const previewContent = (
+      <p
+        style={{
+          maxWidth: "100%",
+          wordWrap: "break-word",
+          display: "inline-block",
+        }}
+      >
+        You will send kitty {id} to {receiver}
+      </p>
+    );
+    sendTransaction(
+      cmd,
+      previewContent,
+      `sending ${id} to ${receiver.substring(0, 10)}`,
+      callback ?? (() => alert(`sent ${id} to ${receiver.substring(0, 10)}`))
+    );
+  };
+}
+
+function useRemoveFromSale() {
+  const { account, sendTransaction } = useContext(PactContext);
+  const makeCmd = useCmd();
+  return async (id, callback) => {
+    const pactCode = `(free.${KITTY_KADS_CONTRACT}.${REMOVE_ID_ON_SALE_FUNC} "${id}")`;
+    const cmd = makeCmd(pactCode, [...ownerCaps(account), gasCap()]);
+    const previewContent = <p>You will remove {id} from sale</p>;
+    sendTransaction(
+      cmd,
+      previewContent,
+      `remove ${id} from sale`,
+      callback ?? (() => alert(`removed ${id} from sale`))
+    );
+  };
+}
+
+function useCmd() {
+  const { account, gasPrice, chainId, netId } = useContext(PactContext);
+  return (pactCode, caps) => ({
+    pactCode,
+    caps,
+    sender: account.account,
+    gasLimit: 10000,
+    gasPrice,
+    chainId,
+    ttl: 600,
+    envData: {
+      "user-ks": account.guard,
+      account: account.account,
+    },
+    signingPubKey: account.guard.keys[0],
+    networkId: netId,
+  });
+}
+
+function ownerCaps(account) {
+  return [
+    Pact.lang.mkCap(
+      "Verify you are the owner",
+      "Verify you are the owner",
+      `free.${KITTY_KADS_CONTRACT}.OWNER`,
+      [account.account]
+    ),
+    accountGuardCap(account),
+  ];
+}
+
+function accountGuardCap(account) {
+  return Pact.lang.mkCap(
+    "Verify your account",
+    "Verify your account",
+    `free.${KITTY_KADS_CONTRACT}.ACCOUNT_GUARD`,
+    [account.account]
+  );
+}
+
+function buyFeesCaps(account, sellerAddress, toSeller, fee) {
+  return [
+    Pact.lang.mkCap(
+      `Amount to seller`,
+      "What the seller will receive",
+      `coin.TRANSFER`,
+      [account.account, sellerAddress, toSeller]
+    ),
+    Pact.lang.mkCap(
+      `Marketplace fee`,
+      "Included in total price",
+      `coin.TRANSFER`,
+      [account.account, ADMIN_ADDRESS, fee]
+    ),
+  ];
 }
 
 export {
   useGetMyKitties,
   useGetAllKitties,
-  useAdoptKitties,
-  useAmountLeftToAdopt,
   useGetKittiesOnSale,
   useGetKittyActions,
   useGetPricesForKitties,
+  useBuyKitty,
+  usePutOnSale,
+  useRemoveFromSale,
+  useTransfer,
 };

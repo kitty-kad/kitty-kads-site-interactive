@@ -9,7 +9,7 @@ import Pact from "pact-lang-api";
 import { useCallback } from "react";
 
 export const PactContext = createContext();
-export const DEFAULT_GAS_PRICE = 0.00000001;
+export const DEFAULT_GAS_PRICE = 0.0000001;
 export const MAIN_NET_ID = "mainnet01";
 export const TEST_NET_ID = "testnet04";
 
@@ -301,26 +301,22 @@ export const PactContextProvider = ({ children }) => {
     let time_spent_polling_s = 0;
     let pollRes = null;
     const { transactionMessage } = currTransactionState;
-    let waitingText = (
-      <span
-        onClick={() =>
-          window.open(
-            `https://explorer.chainweb.com/mainnet/txdetail/${requestKey}`,
-            "_blank"
-          )
-        }
-      >
-        {`Waiting ${POLL_INTERVAL_S}s for transaction ${requestKey.slice(0, 10)}
-        ... (${transactionMessage})`}
-      </span>
+
+    toast.info(
+      <WaitingText
+        waiting={POLL_INTERVAL_S}
+        requestKey={requestKey}
+        transactionMessage={transactionMessage}
+      />,
+      {
+        position: "top-right",
+        autoClose: 10000,
+        hideProgressBar: false,
+        draggable: false,
+        toastId: requestKey,
+        closeOnClick: false,
+      }
     );
-    toast.info(waitingText, {
-      position: "top-right",
-      autoClose: 10000,
-      hideProgressBar: false,
-      draggable: true,
-      toastId: requestKey,
-    });
     while (time_spent_polling_s < 240) {
       await wait(POLL_INTERVAL_S * 1000);
       try {
@@ -337,18 +333,27 @@ export const PactContextProvider = ({ children }) => {
         break;
       }
       time_spent_polling_s += POLL_INTERVAL_S;
-      waitingText = `Waiting ${
-        time_spent_polling_s + POLL_INTERVAL_S
-      }s for transaction ${requestKey.slice(0, 10)}... (${transactionMessage})`;
-      toast.update(requestKey, { render: waitingText });
+      toast.update(requestKey, {
+        render: (
+          <WaitingText
+            waiting={time_spent_polling_s + POLL_INTERVAL_S}
+            requestKey={requestKey}
+            transactionMessage={transactionMessage}
+          />
+        ),
+      });
     }
 
     if (pollRes[requestKey].result.status === "success") {
       toast.update(requestKey, {
-        render: `Succesfully completed ${requestKey.slice(
-          0,
-          10
-        )}... (${transactionMessage})`,
+        render: (
+          <span onClick={transactionLinkAction(requestKey)}>
+            {`Succesfully completed ${requestKey.slice(
+              0,
+              10
+            )}... (${transactionMessage})`}
+          </span>
+        ),
         type: "success",
         position: "top-right",
         autoClose: 3000,
@@ -363,12 +368,13 @@ export const PactContextProvider = ({ children }) => {
     } else {
       console.log(pollRes);
       toast.error(
-        `Failed transaction ${requestKey}... (${transactionMessage})`,
+        <span
+          onClick={transactionLinkAction(requestKey)}
+        >{`Failed transaction ${requestKey}... (${transactionMessage})`}</span>,
         {
           position: "top-right",
-          autoClose: 3000,
           hideProgressBar: true,
-          closeOnClick: true,
+          closeOnClick: false,
           draggable: true,
         }
       );
@@ -508,4 +514,21 @@ function trySaveLocalAccount(account) {
     console.log(e);
     return;
   }
+}
+
+function transactionLinkAction(requestKey) {
+  return () =>
+    window.open(
+      `https://explorer.chainweb.com/mainnet/tx/${requestKey}`,
+      "_blank"
+    );
+}
+
+function WaitingText({ waiting, requestKey, transactionMessage }) {
+  return (
+    <span onClick={transactionLinkAction(requestKey)}>
+      {`Waiting ${waiting}s for transaction ${requestKey.slice(0, 10)}
+    ... (${transactionMessage})`}
+    </span>
+  );
 }
