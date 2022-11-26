@@ -1,7 +1,8 @@
 import React, { useContext, useState, useEffect, useMemo } from "react";
 import { GameContext } from "../game-context";
-import { SCREENS, KITTY_ACTIONS } from "../consts";
+import { SCREENS, KITTY_ACTIONS, SORT_KEYS } from "../consts";
 import { SearchFilters } from "../search-utils";
+import { SortDropdown } from "../sort-utils";
 import PutOnSale from "./interaction-popups/PutOnSale";
 import Transfer from "./interaction-popups/Transfer";
 
@@ -10,6 +11,7 @@ import {
   useImageSearchAndUpdateHelpers,
   getPagesCount,
   idToIndex,
+  sortKitties,
 } from "./screen-helpers";
 import {
   useGetMyKitties,
@@ -21,6 +23,7 @@ import {
   useRemoveFromSale,
 } from "../pact-functions";
 import { PactContext } from "../../../wallet/pact-wallet";
+import { useCallback } from "react";
 
 export default function ScreenContainer(props) {
   const { currScreen, allKittiesData } = useContext(GameContext);
@@ -126,6 +129,7 @@ function BuyKitties() {
     updatePageNum,
     handleFirstLoad,
     getHeaderText,
+    updatePagesInfo,
     getCurrKittiesAndIsLoading,
   } = useImageSearchAndUpdateHelpers();
 
@@ -133,6 +137,7 @@ function BuyKitties() {
 
   const getKittiesOnSale = useGetKittiesOnSale();
   const getPricesForKitties = useGetPricesForKitties();
+  const [sortKey, setSortKey] = useState(SORT_KEYS.LOWEST_ID);
 
   useEffect(() => {
     (async () => {
@@ -176,11 +181,33 @@ function BuyKitties() {
       }
       setAllKittiesData(newAllKittiesData);
     })();
-  }, [defaultIds, allKittiesData, setAllKittiesData, getPricesForKitties]);
+  }, [
+    defaultIds,
+    allKittiesData,
+    setAllKittiesData,
+    getPricesForKitties,
+    updatePagesInfo,
+    allResultsIds,
+    sortKey,
+    currScreen,
+  ]);
 
   const { currKitties, stillLoading } = useMemo(() => {
     return getCurrKittiesAndIsLoading(currIds);
   }, [currIds, getCurrKittiesAndIsLoading]);
+
+  const updateSort = useCallback(
+    (newSortKey) => {
+      setSortKey(newSortKey);
+      console.log(newSortKey);
+      updatePagesInfo(
+        defaultIds,
+        sortKitties(allResultsIds, allKittiesData, newSortKey),
+        currScreen
+      );
+    },
+    [updatePagesInfo, defaultIds, allResultsIds, allKittiesData, currScreen]
+  );
 
   const headerText = getHeaderText(currScreen, "are up for sale");
   return (
@@ -195,9 +222,12 @@ function BuyKitties() {
       showPrice={true}
       search={
         <SearchFilters
-          setSearchParams={(params) => updateSearchParams(params, currScreen)}
+          setSearchParams={(params) =>
+            updateSearchParams(params, currScreen, sortKey)
+          }
         />
       }
+      sort={<SortDropdown onChange={updateSort} />}
     />
   );
 }
@@ -260,6 +290,7 @@ function KittiesList({
   setPage,
   search,
   showPrice,
+  sort,
 }) {
   const hasKitties = kitties != null && kitties.length > 0;
   const extraStyle = { overflowY: "scroll" };
@@ -281,7 +312,12 @@ function KittiesList({
           {header}
         </h2>
       )}
-      <div style={kitties == null ? { display: "none" } : null}>{search}</div>
+      <CenterRow
+        extraStyle={kitties?.length == null ? { display: "none" } : null}
+      >
+        {search}
+        {sort && <div style={{ paddingLeft: 20 }}>{sort}</div>}
+      </CenterRow>
       <div
         style={{
           display: "flex",

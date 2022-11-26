@@ -1,5 +1,5 @@
 import React, { useState, useContext, useCallback } from "react";
-import { SCREENS } from "../consts";
+import { SCREENS, SORT_KEYS } from "../consts";
 import { GameContext } from "../game-context";
 import { useGetAllKitties } from "../pact-functions";
 import {
@@ -49,7 +49,7 @@ export function useImageSearchAndUpdateHelpers() {
     }
   };
 
-  const updateSearchParams = (newSearchParams, screen) => {
+  const updateSearchParams = (newSearchParams, screen, sortKey) => {
     // Not ready to search backend
     if (allKittiesData == null) {
       return;
@@ -87,17 +87,11 @@ export function useImageSearchAndUpdateHelpers() {
       if (defaultIds.length !== allKittiesData.length) {
         filters = { ...filters, ids: defaultIds };
       }
-      const allResultsIds = (await getIdsForFilters(filters)).map(
+      let allResultsIds = (await getIdsForFilters(filters)).map(
         (result) => result.id
       );
-      const currIds = idsNeededForPage(0, allResultsIds);
-      const newPageData = {
-        ...currPageData,
-        allResultsIds,
-        currIds: idsNeededForPage(0, allResultsIds),
-      };
-      setPagesInfo({ ...pagesInfo, [screen]: newPageData });
-      fetchNeededImages(currIds);
+      allResultsIds = sortKitties(allResultsIds, allKittiesData, sortKey);
+      updatePagesInfo(defaultIds, allResultsIds, screen);
     };
     searchFiltersFromServer(newSearchParams);
   };
@@ -117,20 +111,30 @@ export function useImageSearchAndUpdateHelpers() {
     updatePage(newPageData);
   };
 
-  const handleFirstLoad = async (getDefaultIds, screen) => {
+  const updatePagesInfo = (defaultIds, allResultsIds, screen) => {
+    const currScreenInfo = pagesInfo[screen] ?? {};
+    const newPageData = {
+      ...currScreenInfo,
+      defaultIds,
+      allResultsIds: allResultsIds,
+      currIds: allResultsIds.slice(0, 100),
+      page: 0,
+    };
+    const newPagesInfo = { ...pagesInfo, [screen]: newPageData };
+    setPagesInfo(newPagesInfo);
+    updatePage(newPageData);
+  };
+
+  const handleFirstLoad = async (
+    getDefaultIds,
+    screen,
+    sortKey = SORT_KEYS.LOWEST_ID
+  ) => {
     const currScreenInfo = pagesInfo[screen] ?? {};
     if (currScreenInfo?.currIds == null) {
-      const defaultIds = await getDefaultIds();
-      const newPageData = {
-        ...currScreenInfo,
-        defaultIds,
-        allResultsIds: defaultIds,
-        currIds: defaultIds.slice(0, 100),
-        page: 0,
-      };
-      const newPagesInfo = { ...pagesInfo, [screen]: newPageData };
-      setPagesInfo(newPagesInfo);
-      updatePage(newPageData);
+      let defaultIds = await getDefaultIds();
+      defaultIds = sortKitties(defaultIds, allKittiesData, sortKey);
+      updatePagesInfo(defaultIds, defaultIds, screen);
     }
   };
 
@@ -181,7 +185,32 @@ export function useImageSearchAndUpdateHelpers() {
     handleFirstLoad,
     getHeaderText,
     getCurrKittiesAndIsLoading,
+    updatePagesInfo,
   };
+}
+
+export function sortKitties(defaultIds, allKittiesData, sortKey) {
+  if (sortKey == null) {
+    return defaultIds;
+  }
+  const sortedIds = [...defaultIds].sort((a, b) => {
+    const aIndex = idToIndex(a);
+    const bIndex = idToIndex(b);
+    const aPrice = allKittiesData[aIndex].price ?? 0;
+    const bPrice = allKittiesData[bIndex].price ?? 0;
+    if (sortKey === SORT_KEYS.LOWEST_PRICE) {
+      return aPrice - bPrice;
+    } else if (sortKey === SORT_KEYS.HIGHEST_PRICE) {
+      return bPrice - aPrice;
+    } else if (sortKey === SORT_KEYS.LOWEST_ID) {
+      return aIndex - bIndex;
+    } else if (sortKey === SORT_KEYS.HIGHEST_ID) {
+      return bIndex - aIndex;
+    }
+    return aIndex - bIndex;
+  });
+  console.log(sortedIds);
+  return sortedIds;
 }
 
 export function kittiesStr(amountOfKitties) {

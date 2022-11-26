@@ -13,5 +13,12 @@ export const KITTY_ACTIONS = {
   TRANSFER: "TRANSFER",
 };
 
+export const SORT_KEYS = {
+  LOWEST_PRICE: "LOWEST_PRICE",
+  HIGHEST_PRICE: "HIGHEST_PRICE",
+  LOWEST_ID: "LOWEST_ID",
+  HIGHEST_ID: "HIGHEST_ID",
+};
+
 // const CONSTS = { SCREENS };
 // export default CONSTS;
