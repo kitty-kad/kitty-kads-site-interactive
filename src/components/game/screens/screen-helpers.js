@@ -196,8 +196,8 @@ export function sortKitties(defaultIds, allKittiesData, sortKey) {
   const sortedIds = [...defaultIds].sort((a, b) => {
     const aIndex = idToIndex(a);
     const bIndex = idToIndex(b);
-    const aPrice = allKittiesData[aIndex].price ?? 0;
-    const bPrice = allKittiesData[bIndex].price ?? 0;
+    const aPrice = allKittiesData[aIndex]?.price ?? 0;
+    const bPrice = allKittiesData[bIndex]?.price ?? 0;
     if (sortKey === SORT_KEYS.LOWEST_PRICE) {
       return aPrice - bPrice;
     } else if (sortKey === SORT_KEYS.HIGHEST_PRICE) {
