@@ -12,9 +12,8 @@ export const PAGE_SIZE = 100;
 
 export function useFetchAllKittiesInit() {
   const { setAllKittiesData } = useContext(GameContext);
-  // const [kittiesToShow, setKittiesToShow] = useState(null);
+  const [kittiesToShow, setKittiesToShow] = useState(null);
   const getAllKitties = useGetAllKitties();
-
   // Initialize all kitties data
   useState(() => {
     (async () => {
@@ -42,7 +41,7 @@ export function useImageSearchAndUpdateHelpers() {
   const fetchNeededImages = async (idsToShow) => {
     const idsNotLoaded = idsToFetch(idsToShow, allKittiesData);
     let newAllData = allKittiesData;
-    if (idsNotLoaded.length !== 0) {
+    if (idsNotLoaded.length) {
       const fetchedData = await getImagesForIds(idsNotLoaded);
       newAllData = getNewAllKittiesData(allKittiesData, fetchedData);
       setAllKittiesData(newAllData);
@@ -51,7 +50,7 @@ export function useImageSearchAndUpdateHelpers() {
 
   const updateSearchParams = (newSearchParams, screen, sortKey) => {
     // Not ready to search backend
-    if (allKittiesData == null) {
+    if (allKittiesData.length === 0) {
       return;
     }
     setSearchParams(newSearchParams);
@@ -209,7 +208,6 @@ export function sortKitties(defaultIds, allKittiesData, sortKey) {
     }
     return aIndex - bIndex;
   });
-  console.log(sortedIds);
   return sortedIds;
 }
 
@@ -241,7 +239,7 @@ function idsToFetch(idsNeeded, allKittiesData) {
   for (let i = 0; i < idsNeeded.length; i++) {
     const id = idsNeeded[i];
     const index = idToIndex(id);
-    if (b64ForKitty(allKittiesData[index]) == null) {
+    if (b64ForKitty(allKittiesData?.[index]) == null) {
       toFetch.push(id);
     }
   }

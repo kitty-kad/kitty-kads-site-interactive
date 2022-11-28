@@ -7,7 +7,7 @@ import PutOnSale from "./interaction-popups/PutOnSale";
 import Transfer from "./interaction-popups/Transfer";
 
 import {
-  useFetchAllKittiesInit,
+  // useFetchAllKittiesInit,
   useImageSearchAndUpdateHelpers,
   getPagesCount,
   idToIndex,
@@ -19,7 +19,6 @@ import {
   useGetKittyActions,
   useGetPricesForKitties,
   useBuyKitty,
-  usePutOnSale,
   useRemoveFromSale,
 } from "../pact-functions";
 import { PactContext } from "../../../wallet/pact-wallet";
@@ -27,19 +26,18 @@ import { useCallback } from "react";
 
 export default function ScreenContainer(props) {
   const { currScreen, allKittiesData } = useContext(GameContext);
-  useFetchAllKittiesInit();
-
+  // useFetchAllKittiesInit();
   return (
     <div style={screensStyle}>
       {currScreen == null && <Landing />}
-      {allKittiesData != null ? (
+      {allKittiesData.length !== 0 && (
         <>
           {currScreen === SCREENS.MY_KITTIES && <MyKitties />}
           {currScreen === SCREENS.ALL_KITTIES && allKittiesData != null && (
             <AllKitties />
           )}
         </>
-      ) : null}
+      )}
       {currScreen === SCREENS.BUY && <BuyKitties />}
       {currScreen === SCREENS.DETAILS && <SelectedKitty />}
     </div>
@@ -151,7 +149,7 @@ function BuyKitties() {
     pagesInfo[currScreen] ?? {};
 
   useEffect(() => {
-    if (defaultIds == null) {
+    if (defaultIds == null || allKittiesData.length === 0) {
       return;
     }
     (async () => {
@@ -159,7 +157,7 @@ function BuyKitties() {
       for (let i = 0; i < defaultIds.length; i++) {
         const id = defaultIds[i];
         const index = idToIndex(id);
-        if (allKittiesData[index].price == null) {
+        if (allKittiesData[index]?.price == null) {
           idsWithoutPrices.push(id);
         }
       }
@@ -199,7 +197,6 @@ function BuyKitties() {
   const updateSort = useCallback(
     (newSortKey) => {
       setSortKey(newSortKey);
-      console.log(newSortKey);
       updatePagesInfo(
         defaultIds,
         sortKitties(allResultsIds, allKittiesData, newSortKey),
@@ -507,7 +504,6 @@ function KittyCard({ kitty, showFeatures, notClickable, showPrice }) {
       if (onSale) {
         if (isOwner) {
           tempActions.push(KITTY_ACTIONS.REMOVE_FROM_SALE);
-          console.log("REMOVE FROM SALE");
         } else {
           if (userAccount == null) {
             tempActions.push(KITTY_ACTIONS.LOGIN_TO_BUY);
@@ -517,7 +513,6 @@ function KittyCard({ kitty, showFeatures, notClickable, showPrice }) {
         }
       }
       if (isOwner && !onSale) {
-        console.log("NOT ON SALE");
         tempActions.push(KITTY_ACTIONS.PUT_ON_SALE);
       }
       if (isOwner) {
@@ -615,22 +610,30 @@ function KittyCard({ kitty, showFeatures, notClickable, showPrice }) {
   );
 }
 
+function navigateWithRefresh(screen) {
+  const newUrl = window.location.origin + "/" + screen?.toLowerCase();
+  if (newUrl !== window.location.href) {
+    window.location.href = newUrl;
+  } else {
+    window.location.reload(true);
+  }
+}
+
 function KittyActionButton({ kitty, action }) {
-  const { setCurrScreen, allKittiesData } = useContext(GameContext);
+  const { allKittiesData } = useContext(GameContext);
   const { id } = kitty;
   const currKittyData = allKittiesData[idToIndex(id)];
-  const arkadeLink = `https://www.arkade.fun/market/kitty-kad/${id}`;
   const buyKitty = useBuyKitty();
-  const putOnSale = usePutOnSale();
   const removeFromSale = useRemoveFromSale();
   const [isModalOpen, setIsModalOpen] = useState(false);
   if (action === KITTY_ACTIONS.CAN_BUY) {
     return (
       <BasicActionButton
         onClick={() =>
-          buyKitty(id, currKittyData.price, currKittyData.owner, () =>
-            setCurrScreen(SCREENS.MY_KITTIES)
-          )
+          buyKitty(id, currKittyData.price, currKittyData.owner, () => {
+            alert(`Bought kitty ${id}, page will refresh`);
+            navigateWithRefresh(SCREENS.MY_KITTIES);
+          })
         }
         text={`Buy for ${kitty.price} KDA`}
       />
@@ -640,7 +643,6 @@ function KittyActionButton({ kitty, action }) {
       <>
         <BasicActionButton
           onClick={() => setIsModalOpen(true)}
-          // onClick={() => putOnSale(id, 6.0)}
           text="Put on sale"
         />
         <PutOnSale
@@ -653,14 +655,19 @@ function KittyActionButton({ kitty, action }) {
   } else if (action === KITTY_ACTIONS.REMOVE_FROM_SALE) {
     return (
       <BasicActionButton
-        onClick={() => removeFromSale(id)}
+        onClick={() =>
+          removeFromSale(id, () => {
+            alert(`Removed kitty ${id} from sale, page will refresh`);
+            navigateWithRefresh(SCREENS.MY_KITTIES);
+          })
+        }
         text="Remove from sale"
       />
     );
   } else if (action === KITTY_ACTIONS.LOGIN_TO_BUY) {
     return (
       <BasicActionButton
-        onClick={() => window.open(arkadeLink, "_blank")}
+        onClick={() => alert("Connect wallet using button on the left")}
         text="Login to buy"
       />
     );

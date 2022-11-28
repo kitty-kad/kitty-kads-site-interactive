@@ -122,8 +122,8 @@ function useBuyKitty() {
     const cmd = {
       pactCode,
       caps: [
-        buyFeesCaps(account, sellerAddress, toSeller, fee),
-        accountGuardCap(),
+        ...buyFeesCaps(account, sellerAddress, toSeller, fee),
+        accountGuardCap(account),
         gasCap(),
       ],
       sender: account.account,
