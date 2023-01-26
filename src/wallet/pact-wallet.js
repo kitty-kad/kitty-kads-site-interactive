@@ -86,11 +86,6 @@ export const PactContextProvider = ({ children }) => {
             `Wrong X Wallet account selected in extension, please select ${account.account}`
           );
           return;
-        } else if (accountConnectedRes?.wallet?.chainId !== chainId) {
-          toast.error(
-            `Wrong chain selected in X Wallet, please select ${chainId}`
-          );
-          return;
         }
         xwalletSignRes = await window.kadena.request({
           method: "kda_requestSign",
@@ -186,15 +181,11 @@ export const PactContextProvider = ({ children }) => {
             closeConnectWallet();
             return;
           }
+          console.log(res);
           if (res.account?.account !== account.account) {
             toast.error(
               "Tried to connect to X Wallet but not with the account entered. Make sure you have logged into the right account in X Wallet"
             );
-            closeConnectWallet();
-            return;
-          }
-          if (res.account?.chainId !== chainId) {
-            toast.error(`You need to select chain ${chainId} from X Wallet`);
             closeConnectWallet();
             return;
           }
