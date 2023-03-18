@@ -19,8 +19,8 @@ export default function TransactionModal(props) {
     logoutAccount,
     account,
   } = useContext(PactContext);
-  const hasXWallet = window?.kadena?.isKadena === true;
-  const [isXwallet, setIsXwallet] = useState(hasXWallet);
+  const hasEchoWallet = window?.kadena?.isKadena === true;
+  const [isEchoWallet, setIsEchoWallet] = useState(hasEchoWallet);
   const [localAccount, setLocalAccount] = useState(account);
   const [fetchedAccountMessage, setFetchedAccountMessage] = useState(
     "Please enter an address to continue"
@@ -85,12 +85,12 @@ export default function TransactionModal(props) {
           {fetchedAccountMessage}
         </Typography>
 
-        {hasXWallet && (
+        {hasEchoWallet && (
           <FormControlLabel
             style={{ width: "100%" }}
             control={<Switch defaultChecked />}
-            onChange={(e) => setIsXwallet(e.target.checked)}
-            label="Use X-Wallet"
+            onChange={(e) => setIsEchoWallet(e.target.checked)}
+            label="Use Echo Wallet"
           />
         )}
         <div style={{ paddingTop: 60 }}>
@@ -99,7 +99,7 @@ export default function TransactionModal(props) {
               disabled={localAccount?.account == null}
               variant="contained"
               color="success"
-              onClick={() => setConnectedWallet(localAccount, isXwallet)}
+              onClick={() => setConnectedWallet(localAccount, isEchoWallet)}
               style={{ paddingRight: 20 }}
             >
               {account?.account == null ? "Confirm" : "Update"}

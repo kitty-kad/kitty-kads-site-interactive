@@ -14,7 +14,7 @@ export const MAIN_NET_ID = "mainnet01";
 export const TEST_NET_ID = "testnet04";
 
 const LOCAL_ACCOUNT_KEY = "LOCAL_ACCOUNT_KEY";
-const IS_X_WALLET_KEY = "IS_X_WALLET_KEY";
+const IS_ECHO_WALLET_KEY = "IS_ECHO_WALLET_KEY";
 
 const POLL_INTERVAL_S = 5;
 
@@ -26,7 +26,9 @@ export const PactContextProvider = ({ children }) => {
   const [networkUrl, setNetworkUrl] = useState(null);
   const [currTransactionState, setCurrTransactionState] = useState({});
   const [isConnectWallet, setIsConnectWallet] = useState(false);
-  const [isXwallet, setIsXwallet] = useState(tryLoadLocal(IS_X_WALLET_KEY));
+  const [isEchoWallet, setIsEchoWallet] = useState(
+    tryLoadLocal(IS_ECHO_WALLET_KEY)
+  );
 
   /* HELPER HOOKS */
   useEffect(() => {
@@ -67,8 +69,8 @@ export const PactContextProvider = ({ children }) => {
   const signTransaction = async (cmdToSign) => {
     updateTransactionState({ signingCmd: cmdToSign });
     let signedCmd = null;
-    if (isXwallet) {
-      let xwalletSignRes = null;
+    if (isEchoWallet) {
+      let echoWalletSignRes = null;
       try {
         const accountConnectedRes = await window.kadena.request({
           method: "kda_requestAccount",
@@ -77,17 +79,17 @@ export const PactContextProvider = ({ children }) => {
         });
         console.log(accountConnectedRes);
         if (accountConnectedRes?.status !== "success") {
-          toast.error("X Wallet connection was lost, please re-connect");
+          toast.error("Echo Wallet connection was lost, please re-connect");
           clearTransaction();
           logoutAccount();
           return;
         } else if (accountConnectedRes?.wallet?.account !== account.account) {
           toast.error(
-            `Wrong X Wallet account selected in extension, please select ${account.account}`
+            `Wrong Echo Wallet account selected in extension, please select ${account.account}`
           );
           return;
         }
-        xwalletSignRes = await window.kadena.request({
+        echoWalletSignRes = await window.kadena.request({
           method: "kda_requestSign",
           networkId: netId,
           data: { networkId: netId, signingCmd: cmdToSign },
@@ -95,12 +97,12 @@ export const PactContextProvider = ({ children }) => {
       } catch (e) {
         console.log(e);
       }
-      if (xwalletSignRes.status !== "success") {
-        toast.error("Failed to sign the command in X-Wallet");
+      if (echoWalletSignRes.status !== "success") {
+        toast.error("Failed to sign the command in echo-wallet");
         clearTransaction();
         return;
       }
-      signedCmd = xwalletSignRes.signedCmd;
+      signedCmd = echoWalletSignRes.signedCmd;
     } else {
       try {
         signedCmd = await Pact.wallet.sign(cmdToSign);
@@ -159,10 +161,10 @@ export const PactContextProvider = ({ children }) => {
     setIsConnectWallet(true);
   };
 
-  const setConnectedWallet = async (account, isXwallet) => {
-    console.log(isXwallet);
+  const setConnectedWallet = async (account, isEchoWallet) => {
+    console.log(isEchoWallet);
     if (account != null) {
-      if (isXwallet) {
+      if (isEchoWallet) {
         try {
           await window.kadena.request({
             method: "kda_disconnect",
@@ -177,34 +179,34 @@ export const PactContextProvider = ({ children }) => {
             networkId: netId,
           });
           if (res.status !== "success") {
-            toast.error(`Could not connect to X Wallet`);
+            toast.error(`Could not connect to Echo Wallet`);
             closeConnectWallet();
             return;
           }
           console.log(res);
           if (res.account?.account !== account.account) {
             toast.error(
-              "Tried to connect to X Wallet but not with the account entered. Make sure you have logged into the right account in X Wallet"
+              "Tried to connect to Echo Wallet but not with the account entered. Make sure you have logged into the right account in Echo Wallet"
             );
             closeConnectWallet();
             return;
           }
         } catch (e) {
           console.log(e);
-          toast.error("Couldn't connect to Xwallet");
+          toast.error("Couldn't connect to Echo Wallet");
           closeConnectWallet();
 
           return;
         }
       }
-      setIsXwallet(isXwallet);
+      setIsEchoWallet(isEchoWallet);
       setAccount(account);
       toast.success(`Connected ${account.account.slice(0, 10)}...`, {
         hideProgressBar: true,
         autoClose: 2000,
       });
       trySaveLocal(LOCAL_ACCOUNT_KEY, account);
-      trySaveLocal(IS_X_WALLET_KEY, isXwallet);
+      trySaveLocal(IS_ECHO_WALLET_KEY, isEchoWallet);
     } else {
       toast.error(`Couldn't connect account :(`, {
         hideProgressBar: true,
@@ -219,16 +221,16 @@ export const PactContextProvider = ({ children }) => {
   };
 
   const logoutAccount = async () => {
-    if (isXwallet) {
+    if (isEchoWallet) {
       await window.kadena.request({
         method: "kda_disconnect",
         networkId: netId,
       });
     }
     trySaveLocal(LOCAL_ACCOUNT_KEY, null);
-    trySaveLocal(IS_X_WALLET_KEY, false);
+    trySaveLocal(IS_ECHO_WALLET_KEY, false);
     setAccount(null);
-    setIsXwallet(false);
+    setIsEchoWallet(false);
     setIsConnectWallet(false);
   };
 
