@@ -293,7 +293,7 @@ function BreedKitties() {
     useImageSearchAndUpdateHelpers();
   const breed = useBreedKitties();
 
-  const currScreen = SCREENS.ALL_KITTIES;
+  const currScreen = SCREENS.BREED;
 
   // Handle first load
   useFirstLoadMyKitties(currScreen);
