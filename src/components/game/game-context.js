@@ -1,12 +1,5 @@
-import React, {
-  useState,
-  useContext,
-  useMemo,
-  createContext,
-  useEffect,
-} from "react";
+import React, { useState, useMemo, createContext, useEffect } from "react";
 import { SCREENS } from "./consts";
-import { PactContext } from "../../wallet/pact-wallet";
 
 export const GameContext = createContext();
 
@@ -25,24 +18,18 @@ export function GameContextProvider({ children }) {
   const [pagesInfo, setPagesInfo] = useState({});
   const [myKitties, setMyKitties] = useState(null);
   // Kitties data drops the 1: from the start
-  const [allKittiesData, setAllKittiesData] = useState(() => {
-    const arr = [];
-    for (let i = 0; i < 10000; i++) {
-      arr.push({ id: `1:${i}` });
-    }
-    return arr;
-  });
+  const [allKittiesData, setAllKittiesData] = useState([]);
+  // const [allKittiesData, setAllKittiesData] = useState(() => {
+  //   const arr = [];
+  //   for (let i = 0; i < 10000; i++) {
+  //     arr.push({ id: `1:${i}` });
+  //   }
+  //   return arr;
+  // });
   const [currKitty, setCurrKitty] = useState(null);
-  // const { account } = useContext(PactContext);
   const [lastScreen, setLastScreen] = useState(null);
   const pricePerKitty = 5;
-
-  // When the account is changed, reset the kitties saved
-  // useEffect(() => {
-  //   setMyKitties(null);
-  //   setCurrScreen(null);
-  //   console.log("reset");
-  // }, [account?.account]);
+  useEffect(() => {}, []);
 
   const value = useMemo(() => {
     return {

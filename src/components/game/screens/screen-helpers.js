@@ -216,7 +216,14 @@ export function kittiesStr(amountOfKitties) {
 }
 
 export function idToIndex(id) {
-  return parseInt(id.split(":")[1]);
+  // Gen 0s
+  if (id.includes(":")) {
+    return parseInt(id.split(":")[1]);
+  }
+  // Gen 0s take up spots 0-> 9999
+  // Gen 1s start from id 1 -> 5,000
+  // If not a Gen 0, then get Gen 1 index
+  return 9999 + parseInt(id);
 }
 
 function sortIds(ids) {

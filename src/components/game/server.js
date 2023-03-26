@@ -1,5 +1,5 @@
-// const url = `http://localhost:4214/`;
-const url = `https://kitty-kads-nft-image-backend.herokuapp.com/`;
+const url = `http://localhost:4214/`;
+// const url = `https://kitty-kads-nft-image-backend.herokuapp.com/`;
 const imagesSuffix = "getImagesForIds";
 const searchSuffix = "search";
 const getIdsSuffix = "getAllIdsForFilters";

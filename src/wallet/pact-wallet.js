@@ -79,13 +79,13 @@ export const PactContextProvider = ({ children }) => {
         });
         console.log(accountConnectedRes);
         if (accountConnectedRes?.status !== "success") {
-          toast.error("Echo Wallet connection was lost, please re-connect");
+          toast.error("Ecko Wallet connection was lost, please re-connect");
           clearTransaction();
           logoutAccount();
           return;
         } else if (accountConnectedRes?.wallet?.account !== account.account) {
           toast.error(
-            `Wrong Echo Wallet account selected in extension, please select ${account.account}`
+            `Wrong Ecko Wallet account selected in extension, please select ${account.account}`
           );
           return;
         }
@@ -179,21 +179,21 @@ export const PactContextProvider = ({ children }) => {
             networkId: netId,
           });
           if (res.status !== "success") {
-            toast.error(`Could not connect to Echo Wallet`);
+            toast.error(`Could not connect to Ecko Wallet`);
             closeConnectWallet();
             return;
           }
           console.log(res);
           if (res.account?.account !== account.account) {
             toast.error(
-              "Tried to connect to Echo Wallet but not with the account entered. Make sure you have logged into the right account in Echo Wallet"
+              "Tried to connect to Ecko Wallet but not with the account entered. Make sure you have logged into the right account in Ecko Wallet"
             );
             closeConnectWallet();
             return;
           }
         } catch (e) {
           console.log(e);
-          toast.error("Couldn't connect to Echo Wallet");
+          toast.error("Couldn't connect to Ecko Wallet");
           closeConnectWallet();
 
           return;

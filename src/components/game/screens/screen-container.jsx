@@ -7,7 +7,7 @@ import PutOnSale from "./interaction-popups/PutOnSale";
 import Transfer from "./interaction-popups/Transfer";
 
 import {
-  // useFetchAllKittiesInit,
+  useFetchAllKittiesInit,
   useImageSearchAndUpdateHelpers,
   getPagesCount,
   idToIndex,
@@ -19,14 +19,15 @@ import {
   useGetKittyActions,
   useGetPricesForKitties,
   useBuyKitty,
+  useBreedKitties,
   useRemoveFromSale,
 } from "../pact-functions";
 import { PactContext } from "../../../wallet/pact-wallet";
 import { useCallback } from "react";
 
 export default function ScreenContainer(props) {
+  useFetchAllKittiesInit();
   const { currScreen, allKittiesData } = useContext(GameContext);
-  // useFetchAllKittiesInit();
   return (
     <div style={screensStyle}>
       {currScreen == null && <Landing />}
@@ -36,10 +37,12 @@ export default function ScreenContainer(props) {
           {currScreen === SCREENS.ALL_KITTIES && allKittiesData != null && (
             <AllKitties />
           )}
+          {currScreen === SCREENS.BUY && <BuyKitties />}
+          {currScreen === SCREENS.DETAILS && <SelectedKitty />}
+          {currScreen === SCREENS.GEN_1_KITTIES && <Gen1Kitties />}
+          {currScreen === SCREENS.BREED && <BreedKitties />}
         </>
       )}
-      {currScreen === SCREENS.BUY && <BuyKitties />}
-      {currScreen === SCREENS.DETAILS && <SelectedKitty />}
     </div>
   );
 }
@@ -59,20 +62,12 @@ function Landing() {
   );
 }
 
-function MyKitties() {
+function useFirstLoadMyKitties(currScreen) {
   const { account } = useContext(PactContext);
   const { pagesInfo } = useContext(GameContext);
-  const {
-    updateSearchParams,
-    updatePageNum,
-    handleFirstLoad,
-    getHeaderText,
-    getCurrKittiesAndIsLoading,
-  } = useImageSearchAndUpdateHelpers();
-
-  const currScreen = SCREENS.MY_KITTIES;
-
+  const { handleFirstLoad } = useImageSearchAndUpdateHelpers();
   const getMyKitties = useGetMyKitties();
+
   useEffect(() => {
     if (account?.account == null) {
       return;
@@ -82,6 +77,19 @@ function MyKitties() {
     }, currScreen);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [account, pagesInfo]);
+}
+
+function MyKitties() {
+  const { account } = useContext(PactContext);
+  const { pagesInfo } = useContext(GameContext);
+  const currScreen = SCREENS.MY_KITTIES;
+  const {
+    updateSearchParams,
+    updatePageNum,
+    getHeaderText,
+    getCurrKittiesAndIsLoading,
+  } = useImageSearchAndUpdateHelpers();
+  useFirstLoadMyKitties(currScreen);
 
   const { page, allResultsIds, currIds } = pagesInfo[currScreen] ?? {};
 
@@ -229,6 +237,7 @@ function BuyKitties() {
   );
 }
 
+/** Technically just Gen 0 kitties */
 function AllKitties() {
   const { allKittiesData, pagesInfo } = useContext(GameContext);
   const {
@@ -244,7 +253,8 @@ function AllKitties() {
   // Handle first load
   useEffect(() => {
     handleFirstLoad(async () => {
-      return allKittiesData.map((kitty) => kitty.id);
+      // Only load Gen 0s
+      return allKittiesData.map((kitty) => kitty.id).slice(0, 10000);
     }, currScreen);
   }, []);
 
@@ -277,6 +287,165 @@ function AllKitties() {
   );
 }
 
+function BreedKitties() {
+  const { pagesInfo } = useContext(GameContext);
+  const { updateSearchParams, updatePageNum, getCurrKittiesAndIsLoading } =
+    useImageSearchAndUpdateHelpers();
+  const breed = useBreedKitties();
+
+  const currScreen = SCREENS.ALL_KITTIES;
+
+  // Handle first load
+  useFirstLoadMyKitties(currScreen);
+
+  const currPageInfo = pagesInfo[currScreen] ?? {};
+  let { currIds, allResultsIds, page } = currPageInfo;
+  // TODO LET GEN1s BREED WITH GEN 0s
+  currIds = useMemo(() => {
+    return currIds?.filter((id) => id.includes(":"));
+  }, [currIds]);
+
+  const [selectedKitties, setSelectedKitties] = useState([]);
+
+  const { currKitties, stillLoading } = useMemo(() => {
+    return getCurrKittiesAndIsLoading(currIds);
+  }, [currIds, getCurrKittiesAndIsLoading]);
+
+  const addSelectedKitty = (kitty) => {
+    if (selectedKitties.length > 1) {
+      alert("2 kitties already selected, unselect one first");
+      return;
+    }
+    setSelectedKitties([...selectedKitties, kitty]);
+  };
+
+  const removeSelectedKitty = (kittyToRemove) => {
+    setSelectedKitties(
+      selectedKitties.filter((kitty) => kitty !== kittyToRemove)
+    );
+  };
+
+  return (
+    <CenterRow>
+      <CenterColumn
+        extraStyle={{
+          width: "30%",
+          height: "100%",
+          justifyContent: "flex-start",
+        }}
+      >
+        <Header text="The kitties in love" />
+        {selectedKitties.length === 0 && (
+          <p style={{ textAlign: "center" }}>Select kitties from the right</p>
+        )}
+        {selectedKitties.length === 1 && (
+          <p style={{ textAlign: "center" }}>Select one more kitty</p>
+        )}
+        {selectedKitties.length === 2 && (
+          <div style={{ paddingTop: 20, paddingBottom: 20 }}>
+            <button
+              className="btn btn-custom btn-sm"
+              style={{ fontSize: 12 }}
+              onClick={() => {
+                breed(selectedKitties[0].id, selectedKitties[1].id, () =>
+                  navigateWithRefresh(SCREENS.MY_KITTIES)
+                );
+              }}
+            >
+              Make Kittens
+            </button>
+          </div>
+        )}
+        {selectedKitties.map((kitty) => {
+          return (
+            <div style={{ paddingBottom: 15 }}>
+              <KittyCard
+                key={kitty.id}
+                kitty={kitty}
+                showPrice={false}
+                onClickKitty={() => removeSelectedKitty(kitty)}
+                small={true}
+              />
+            </div>
+          );
+        })}
+      </CenterColumn>
+      <CenterColumn
+        extraStyle={{
+          maxHeight: "100%",
+          justifyContent: "flex-start",
+          height: "100%",
+        }}
+      >
+        <KittiesList
+          pages={getPagesCount(allResultsIds?.length ?? 1)}
+          page={page ?? 0}
+          setPage={(number) => updatePageNum(number, currScreen)}
+          kitties={stillLoading ? null : currKitties}
+          loading={<Loading text="Looking for your kitties..." />}
+          empty={<p style={{ textAlign: "center" }}>No kitties found :O</p>}
+          search={
+            <SearchFilters
+              setSearchParams={(params) =>
+                updateSearchParams(params, currScreen)
+              }
+            />
+          }
+          onClickKitty={addSelectedKitty}
+        />
+      </CenterColumn>
+    </CenterRow>
+  );
+}
+
+function Gen1Kitties() {
+  const { allKittiesData, pagesInfo } = useContext(GameContext);
+  const {
+    updateSearchParams,
+    updatePageNum,
+    handleFirstLoad,
+    getHeaderText,
+    getCurrKittiesAndIsLoading,
+  } = useImageSearchAndUpdateHelpers();
+
+  const currScreen = SCREENS.GEN_1_KITTIES;
+
+  // Handle first load
+  useEffect(() => {
+    handleFirstLoad(async () => {
+      return allKittiesData.map((kitty) => kitty.id).slice(10000, 15000);
+    }, currScreen);
+  }, []);
+
+  const currPageInfo = pagesInfo[currScreen] ?? {};
+  const { currIds, allResultsIds, page } = currPageInfo;
+
+  const { currKitties, stillLoading } = useMemo(() => {
+    return getCurrKittiesAndIsLoading(currIds);
+  }, [currIds, getCurrKittiesAndIsLoading]);
+
+  const headerText = getHeaderText(currScreen, "bred");
+
+  return (
+    <CenterColumn>
+      <KittiesList
+        pages={getPagesCount(allResultsIds?.length ?? 1)}
+        page={page ?? 0}
+        setPage={(number) => updatePageNum(number, currScreen)}
+        kitties={stillLoading ? null : currKitties}
+        loading={<Loading text="Fetching kitties..." />}
+        empty={<p style={{ textAlign: "center" }}>No kitties found :O</p>}
+        header={headerText}
+        search={
+          <SearchFilters
+            setSearchParams={(params) => updateSearchParams(params, currScreen)}
+          />
+        }
+      />
+    </CenterColumn>
+  );
+}
+
 function KittiesList({
   kitties,
   loading,
@@ -288,6 +457,7 @@ function KittiesList({
   search,
   showPrice,
   sort,
+  onClickKitty,
 }) {
   const hasKitties = kitties != null && kitties.length > 0;
   const extraStyle = { overflowY: "scroll" };
@@ -298,16 +468,7 @@ function KittiesList({
   return (
     <CenterColumn extraStyle={extraStyle}>
       {kitties != null && kitties.length !== 0 && header != null && (
-        <h2
-          style={{
-            color: "white",
-            paddingTop: 10,
-            fontSize: "25px",
-            marginBottom: "10px",
-          }}
-        >
-          {header}
-        </h2>
+        <Header text={header} />
       )}
       <CenterRow
         extraStyle={kitties?.length == null ? { display: "none" } : null}
@@ -331,7 +492,12 @@ function KittiesList({
           <>
             {kitties.map((kitty) => {
               return (
-                <KittyCard key={kitty.id} kitty={kitty} showPrice={showPrice} />
+                <KittyCard
+                  key={kitty.id}
+                  kitty={kitty}
+                  showPrice={showPrice}
+                  onClickKitty={onClickKitty}
+                />
               );
             })}
             <ListNav pages={pages} page={page} setPage={setPage} />
@@ -339,6 +505,22 @@ function KittiesList({
         )}
       </div>
     </CenterColumn>
+  );
+}
+
+function Header({ text }) {
+  return (
+    <h2
+      style={{
+        textAlign: "center",
+        color: "white",
+        paddingTop: 10,
+        fontSize: "25px",
+        marginBottom: "10px",
+      }}
+    >
+      {text}
+    </h2>
   );
 }
 
@@ -476,9 +658,24 @@ function prettifyUnderscoreText(field) {
   );
 }
 
-function KittyCard({ kitty, showFeatures, notClickable, showPrice }) {
+function getNumberFromId(id) {
+  if (id.includes(":")) {
+    return parseInt(id.split(":")[1]) + 1;
+  }
+  return parseInt(id);
+}
+
+function KittyCard({
+  kitty,
+  showFeatures,
+  notClickable,
+  showPrice,
+  onClickKitty,
+  small,
+}) {
   const { id } = kitty;
-  const number = parseInt(kitty.id.split(":")[1]) + 1;
+  const number = getNumberFromId(id);
+  const gen = id.includes(":") ? 0 : 1;
   const imgStyle = smallKittyStyle;
   const { setCurrKitty, setCurrScreen, allKittiesData, setAllKittiesData } =
     useContext(GameContext);
@@ -541,10 +738,19 @@ function KittyCard({ kitty, showFeatures, notClickable, showPrice }) {
     kitty,
   ]);
 
+  const borderStyle = gen === 0 ? "solid 2px" : "dashed 1px";
+
   return (
     <div
-      style={{ cursor: notClickable === true ? "normal" : "pointer" }}
+      style={{
+        cursor: notClickable === true ? "normal" : "pointer",
+        zoom: small === true ? 0.75 : 1.0,
+      }}
       onClick={() => {
+        if (onClickKitty != null) {
+          onClickKitty(kitty);
+          return;
+        }
         if (notClickable === true) {
           return;
         }
@@ -570,7 +776,7 @@ function KittyCard({ kitty, showFeatures, notClickable, showPrice }) {
         </div>
         <CenterRow
           extraStyle={{
-            border: "solid 2px white",
+            border: `${borderStyle} white`,
             borderRadius: 21,
             margin: 9,
             padding: "10 20",
@@ -598,7 +804,7 @@ function KittyCard({ kitty, showFeatures, notClickable, showPrice }) {
             <p
               style={{ fontSize: "1em", marginBottom: 0, textAlign: "center" }}
             >
-              Gen: 0
+              Gen: {gen}
             </p>
             {showPrice && !showFeatures && kitty.price != null && (
               <p style={idPStyle}>{`${kitty.price} KDA`}</p>
@@ -802,104 +1008,3 @@ const smallKittyStyle = { width: "100%", height: "auto" };
 const minimalistPStyle = { fontSize: "1em", padding: 0, margin: 0 };
 
 const idPStyle = { fontSize: "1.5em", padding: 0, margin: 0 };
-
-// function AdoptKittiesInteraction() {
-//   const adoptKitties = useAdoptKitties();
-//   const amountLeftToAdopt = useAmountLeftToAdopt();
-//   const [amountToAdopt, setAmountToAdopt] = useState(1);
-//   const { pricePerKitty, setCurrScreen } = useContext(GameContext);
-
-//   if (amountLeftToAdopt === 0) {
-//     return (
-//       <div>
-//         <p> All Gen 0 kitties have been sold out!</p>
-//         <p>Thank you all for supporting the first NFT collection on Kadena!</p>
-//       </div>
-//     );
-//   }
-
-//   let errorMessage = null;
-//   if (amountToAdopt < 1) {
-//     errorMessage = "*** You must adopt more than 0 kitties ***";
-//   } else if (
-//     amountLeftToAdopt != null &&
-//     amountLeftToAdopt - amountToAdopt < 0
-//   ) {
-//     errorMessage = `*** Only ${amountLeftToAdopt} kitt${
-//       amountLeftToAdopt === 1 ? "y" : "ies"
-//     } left available to adopt ***`;
-//   } else if (amountToAdopt > 50) {
-//     errorMessage = "Maximum 50 kitties in one transaction";
-//   }
-
-//   const disabled = errorMessage != null;
-
-//   return (
-//     <div>
-//       <p>
-//         Each kitty is a one of a kind digital pet
-//         <br />
-//         Adopt a kitty today
-//       </p>
-//       <CenterColumn
-//         extraStyle={{
-//           justifyContent: "flex-start",
-//           width: 50,
-//           alignItems: "flex-start",
-//         }}
-//       >
-//         <CenterColumn
-//           extraStyle={{
-//             flexDirection: "row",
-//             justifyContent: "flex-start",
-//             paddingBottom: 20,
-//           }}
-//         >
-//           <p style={{ margin: 0, width: 80 }}>Kitties: </p>
-//           <input
-//             style={{
-//               borderRadius: 5,
-//               width: 80,
-//               border: "none",
-//               textAlign: "center",
-//               height: "2em",
-//             }}
-//             type="number"
-//             defaultValue={amountToAdopt}
-//             onChange={(e) => {
-//               const val = e?.target?.value;
-//               setAmountToAdopt(parseInt(val === "" ? "0" : val));
-//             }}
-//           />
-//         </CenterColumn>
-//         <button
-//           disabled={disabled}
-//           style={{
-//             width: 160,
-//             fontFamily: textFontFamily,
-//             fontSize: "16px",
-//             lineHeight: "30px",
-//             color: "white",
-//             background: disabled ? "gray" : "#249946",
-//             border: "none",
-//             borderRadius: 5,
-//           }}
-//           onClick={() =>
-//             adoptKitties(amountToAdopt, () => {
-//               setCurrScreen(SCREENS.MY_KITTIES);
-//             })
-//           }
-//         >
-//           {errorMessage == null &&
-//             `Adopt for ${pricePerKitty * amountToAdopt} KDA`}
-//           {errorMessage != null && "Read below"}
-//         </button>
-//         {/* </Button> */}
-//       </CenterColumn>
-//       <p style={{ fontSize: "1em", paddingTop: "10" }}>
-//         {errorMessage}
-//         {errorMessage == null && "(Kitties will be visible after adoption)"}
-//       </p>
-//     </div>
-//   );
-// }

@@ -90,7 +90,7 @@ export default function TransactionModal(props) {
             style={{ width: "100%" }}
             control={<Switch defaultChecked />}
             onChange={(e) => setIsEchoWallet(e.target.checked)}
-            label="Use Echo Wallet"
+            label="Use Ecko Wallet"
           />
         )}
         <div style={{ paddingTop: 60 }}>

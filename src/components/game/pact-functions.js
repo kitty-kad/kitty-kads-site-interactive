@@ -1,11 +1,14 @@
 import Pact from "pact-lang-api";
 import { useCallback } from "react";
-import { useContext, useState, useEffect } from "react";
+import { useContext, useState } from "react";
 import { PactContext } from "../../wallet/pact-wallet";
 
 const KITTY_KADS_CONTRACT = "kitty-kad-kitties";
-const OWNED_BY_FUNC = "kitties-owned-by";
-const ALL_IDS_FUNC = "all-kitties";
+const GEN_1_CONTRACT = "test-gen-1-kitty-kad-kitties";
+
+const OWNED_BY_FUNC = "ids-owned-by";
+const BREED_GEN_1_FUNC = "mint-kitty";
+const ALL_IDS_FUNC = "all-ids";
 const ALL_ON_SALE_FUNCTION = "get-all-on-sale";
 const MARKET_PLACE_FIELDS_FOR_ID = "get-marketplace-fields-for-id";
 const MARKET_PLACE_FIELDS_FOR_IDS = "get-marketplace-fields-for-ids";
@@ -25,9 +28,14 @@ function useGetMyKitties() {
   const { account, readFromContract, defaultMeta } = useContext(PactContext);
 
   const [getMyKitties] = useState(() => async () => {
-    const pactCode = `(free.${KITTY_KADS_CONTRACT}.${OWNED_BY_FUNC} "${account.account}")`;
+    const pactCodeGen0 = `(free.${KITTY_KADS_CONTRACT}.${OWNED_BY_FUNC} "${account.account}")`;
+    const pactCodeGen1 = `(free.${GEN_1_CONTRACT}.${OWNED_BY_FUNC} "${account.account}")`;
     const meta = defaultMeta(1000000);
-    return await readFromContract({ pactCode, meta });
+    const [myGen0s, myGen1s] = await Promise.all([
+      readFromContract({ pactCode: pactCodeGen0, meta }),
+      readFromContract({ pactCode: pactCodeGen1, meta }),
+    ]);
+    return [...myGen0s, ...myGen1s];
   });
   return getMyKitties;
 }
@@ -36,9 +44,14 @@ function useGetAllKitties() {
   const { readFromContract, defaultMeta } = useContext(PactContext);
 
   const [getAllKitties] = useState(() => async () => {
-    const pactCode = `(free.${KITTY_KADS_CONTRACT}.${ALL_IDS_FUNC})`;
+    const pactCodeGen0 = `(free.${KITTY_KADS_CONTRACT}.${ALL_IDS_FUNC})`;
+    const pactCodeGen1 = `(free.${GEN_1_CONTRACT}.${ALL_IDS_FUNC})`;
     const meta = defaultMeta();
-    return await readFromContract({ pactCode, meta });
+    const [gen0Ids, gen1Ids] = await Promise.all([
+      readFromContract({ pactCode: pactCodeGen0, meta }),
+      readFromContract({ pactCode: pactCodeGen1, meta }),
+    ]);
+    return [...gen0Ids, ...gen1Ids];
   });
   return getAllKitties;
 }
@@ -248,6 +261,40 @@ function useRemoveFromSale() {
   };
 }
 
+function useGetGen2Ids() {
+  const { readFromContract, defaultMeta } = useContext(PactContext);
+  const getAllOnSale = useCallback(async () => {
+    const pactCode = `(free.${GEN_1_CONTRACT}.${ALL_ON_SALE_FUNCTION})`;
+    const meta = defaultMeta();
+    return await readFromContract({ pactCode, meta });
+  }, [defaultMeta, readFromContract]);
+  return getAllOnSale;
+}
+
+function useBreedKitties() {
+  const { account, sendTransaction } = useContext(PactContext);
+  const makeCmd = useCmd();
+  return async (id1, id2, callback) => {
+    const pactCode = `(free.${GEN_1_CONTRACT}.${BREED_GEN_1_FUNC} "${id1}" "${id2}" "${account.account}")`;
+    const cmd = makeCmd(pactCode, [
+      ...ownerCaps(account),
+      gasCap(),
+      marketplaceCap(account, 1.0),
+    ]);
+    const previewContent = (
+      <p>
+        You will breed kitties with {id1} and {id2} together
+      </p>
+    );
+    sendTransaction(
+      cmd,
+      previewContent,
+      `Bred kitties ${id1} and ${id2}`,
+      callback ?? (() => alert(`Bred kitties ${id1} and ${id2}`))
+    );
+  };
+}
+
 function useCmd() {
   const { account, gasPrice, chainId, netId } = useContext(PactContext);
   return (pactCode, caps) => ({
@@ -296,13 +343,17 @@ function buyFeesCaps(account, sellerAddress, toSeller, fee) {
       `coin.TRANSFER`,
       [account.account, sellerAddress, toSeller]
     ),
-    Pact.lang.mkCap(
-      `Marketplace fee`,
-      "Included in total price",
-      `coin.TRANSFER`,
-      [account.account, ADMIN_ADDRESS, fee]
-    ),
+    marketplaceCap(account, fee),
   ];
+}
+
+function marketplaceCap(account, ammount) {
+  return Pact.lang.mkCap(
+    `Marketplace fee`,
+    "Included in total price",
+    `coin.TRANSFER`,
+    [account.account, ADMIN_ADDRESS, ammount]
+  );
 }
 
 export {
@@ -315,4 +366,5 @@ export {
   usePutOnSale,
   useRemoveFromSale,
   useTransfer,
+  useBreedKitties,
 };

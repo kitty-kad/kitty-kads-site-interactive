@@ -3,6 +3,8 @@ export const SCREENS = {
   MY_KITTIES: "MY_KITTIES",
   ALL_KITTIES: "ALL_KITTIES",
   DETAILS: "DETAILS",
+  BREED: "BREED",
+  GEN_1_KITTIES: "GEN_1_KITTIES",
 };
 
 export const KITTY_ACTIONS = {
