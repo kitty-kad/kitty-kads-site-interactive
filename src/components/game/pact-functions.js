@@ -136,7 +136,7 @@ function useBuyKitty() {
       pactCode,
       caps: [
         ...buyFeesCaps(account, sellerAddress, toSeller, fee),
-        accountGuardCap(account),
+        ...accountGuardCap(account),
         gasCap(),
       ],
       sender: account.account,
@@ -322,17 +322,31 @@ function ownerCaps(account) {
       `free.${KITTY_KADS_CONTRACT}.OWNER`,
       [account.account]
     ),
-    accountGuardCap(account),
+    Pact.lang.mkCap(
+      "Verify you are the owner",
+      "Verify you are the owner",
+      `free.${GEN_1_CONTRACT}.OWNER`,
+      [account.account]
+    ),
+    ...accountGuardCap(account),
   ];
 }
 
 function accountGuardCap(account) {
-  return Pact.lang.mkCap(
-    "Verify your account",
-    "Verify your account",
-    `free.${KITTY_KADS_CONTRACT}.ACCOUNT_GUARD`,
-    [account.account]
-  );
+  return [
+    Pact.lang.mkCap(
+      "Verify your account",
+      "Verify your account",
+      `free.${KITTY_KADS_CONTRACT}.ACCOUNT_GUARD`,
+      [account.account]
+    ),
+    Pact.lang.mkCap(
+      "Verify your account",
+      "Verify your account",
+      `free.${GEN_1_CONTRACT}.ACCOUNT_GUARD`,
+      [account.account]
+    ),
+  ];
 }
 
 function buyFeesCaps(account, sellerAddress, toSeller, fee) {

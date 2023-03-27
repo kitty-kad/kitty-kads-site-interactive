@@ -300,10 +300,6 @@ function BreedKitties() {
 
   const currPageInfo = pagesInfo[currScreen] ?? {};
   let { currIds, allResultsIds, page } = currPageInfo;
-  // TODO LET GEN1s BREED WITH GEN 0s
-  currIds = useMemo(() => {
-    return currIds?.filter((id) => id.includes(":"));
-  }, [currIds]);
 
   const [selectedKitties, setSelectedKitties] = useState([]);
 
@@ -314,6 +310,10 @@ function BreedKitties() {
   const addSelectedKitty = (kitty) => {
     if (selectedKitties.length > 1) {
       alert("2 kitties already selected, unselect one first");
+      return;
+    }
+    if (selectedKitties.includes(kitty)) {
+      alert("Kitty already selected");
       return;
     }
     setSelectedKitties([...selectedKitties, kitty]);
@@ -683,6 +683,8 @@ function KittyCard({
   const features = kitty?.allFeatures ?? kitty?.features;
   const getActions = useGetKittyActions();
   const [availableActions, setAvailableActions] = useState(null);
+  const { currScreen } = useContext(GameContext);
+  const isBreedScreen = currScreen === SCREENS.BREED;
   useEffect(() => {
     (async () => {
       if (showFeatures !== true || availableActions != null) {
@@ -747,6 +749,10 @@ function KittyCard({
         zoom: small === true ? 0.75 : 1.0,
       }}
       onClick={() => {
+        if (isBreedScreen && secondsUntilBreeding(kitty) > 0) {
+          alert("Kitty is not ready to breed");
+          return;
+        }
         if (onClickKitty != null) {
           onClickKitty(kitty);
           return;
@@ -794,6 +800,7 @@ function KittyCard({
               padding: "10 0",
             }}
           >
+            {isBreedScreen && <ReadyToBreedText kitty={kitty} />}
             <p style={idPStyle}>#{number} </p>
             <p style={minimalistPStyle}>{`(ID: ${id})`}</p>
             <KittyImg
@@ -814,6 +821,25 @@ function KittyCard({
       </CenterRow>
     </div>
   );
+}
+
+function secondsUntilBreeding(kitty) {
+  const readyTime = new Date(kitty.nextBreedTime * 1000);
+  const now = new Date();
+  const diffInS = Math.floor((readyTime - now) / 1000);
+  return diffInS;
+}
+
+function ReadyToBreedText({ kitty }) {
+  const diffInS = secondsUntilBreeding(kitty);
+  const SECONDS_IN_HOUR = 60 * 60;
+  if (diffInS <= 0) {
+    return <p>Ready for Love</p>;
+  }
+  if (diffInS < SECONDS_IN_HOUR) {
+    return <p>Wait {Math.floor(diffInS / 60)} Minutes</p>;
+  }
+  return <p>Wait {Math.floor(diffInS / SECONDS_IN_HOUR)} Hours</p>;
 }
 
 function navigateWithRefresh(screen) {
