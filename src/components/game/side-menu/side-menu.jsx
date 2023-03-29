@@ -35,7 +35,7 @@ export default function SideMenu(props) {
         active={currScreen === SCREENS.ALL_KITTIES}
         onClick={() => setCurrScreen(SCREENS.ALL_KITTIES)}
       />
-      {TESTING_ADDRESSES.includes(account?.account) && (
+      {false && TESTING_ADDRESSES.includes(account?.account) && (
         <>
           <SideMenuButton
             title="Gen 1 Kitties"
