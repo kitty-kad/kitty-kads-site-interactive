@@ -4,7 +4,7 @@ import { useContext, useState } from "react";
 import { PactContext } from "../../wallet/pact-wallet";
 
 const KITTY_KADS_CONTRACT = "kitty-kad-kitties";
-const GEN_1_CONTRACT = "test-gen-1-kitty-kad-kitties";
+const GEN_1_CONTRACT = "gen-1-kitty-kad-kitties";
 
 const OWNED_BY_FUNC = "ids-owned-by";
 const BREED_GEN_1_FUNC = "mint-kitty";
