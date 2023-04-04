@@ -15,6 +15,9 @@ const TESTING_ADDRESSES = [
   "k:cdaa0f2d434bc3e30080fb8f2eba1f395b691cb47dbf078c167372f627441553",
   "k:b9f796d2a4606d808f418e694d48d895c721d2893aab491dd953d5631a1fa530",
   "k:7c98a4d80453e3a0fcfb6f7417dc24723010b5825718489fad8cec7cc6ff7b15",
+  "k:1e62c85e3dc0d47fb5c2d7f016e39d0a55763f4ef76eecf5222ead304d5238d2",
+  "k:4c65e9b761ae74dd68baa0cf652f61222292a08f1c505d6fd092867b6572f8f9",
+  "k:ee1a1f5cc9cdc195ec77586df2414a01ee3941e40d42c70734b4f38f898ca703",
 ];
 export default function SideMenu(props) {
   const { openConnectWallet, account } = useContext(PactContext);
