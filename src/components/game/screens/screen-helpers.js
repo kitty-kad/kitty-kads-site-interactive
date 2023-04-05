@@ -178,6 +178,7 @@ export function useImageSearchAndUpdateHelpers() {
   );
 
   return {
+    fetchNeededImages,
     updatePage,
     updateSearchParams,
     updatePageNum,

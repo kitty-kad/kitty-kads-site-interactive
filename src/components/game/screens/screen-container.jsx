@@ -677,6 +677,66 @@ function getNumberFromId(id) {
   return parseInt(id);
 }
 
+function noParents(kitty) {
+  const { gen, parent1Id, parent2Id } = kitty;
+  if (gen === 0 || !parent1Id || !parent2Id) {
+    return true;
+  }
+  return false;
+}
+
+function KittyParents({ kitty }) {
+  const { fetchNeededImages, getCurrKittiesAndIsLoading } =
+    useImageSearchAndUpdateHelpers();
+  const { parent1Id, parent2Id } = kitty;
+
+  // do this to prevent resetting the pointer to parent ids
+  // and causing refreshes
+  const [parentIds] = useState([parent1Id, parent2Id]);
+  const [parentless] = useState(() => noParents(kitty));
+
+  useEffect(() => {
+    if (parentless) {
+      return;
+    }
+    (async () => {
+      await fetchNeededImages(parentIds);
+    })();
+  }, [fetchNeededImages, parentIds, parentless]);
+
+  const { currKitties: parentKitties, stillLoading } = useMemo(() => {
+    if (parentless) {
+      return { currKitties: [], stillLoading: true };
+    }
+    return getCurrKittiesAndIsLoading(parentIds);
+  }, [parentIds, getCurrKittiesAndIsLoading, parentless]);
+
+  if (noParents(kitty)) {
+    return null;
+  }
+
+  if (stillLoading) {
+    return <p>Looking for the parents</p>;
+  }
+  return (
+    <CenterColumn extraStyle={{ paddingTop: 20 }}>
+      <p style={{ marginBottom: 30 }}>The Happy Parents</p>
+      <CenterRow>
+        {parentKitties.map((parentKitty) => {
+          return (
+            <KittyCard
+              key={parentKitty.id}
+              kitty={parentKitty}
+              notClickable={true}
+              extraSmall={true}
+            />
+          );
+        })}
+      </CenterRow>
+    </CenterColumn>
+  );
+}
+
 function KittyCard({
   kitty,
   showFeatures,
@@ -684,19 +744,26 @@ function KittyCard({
   showPrice,
   onClickKitty,
   small,
+  extraSmall,
 }) {
   const { id } = kitty;
   const number = getNumberFromId(id);
   const gen = id.includes(":") ? 0 : 1;
   const imgStyle = smallKittyStyle;
-  const { setCurrKitty, setCurrScreen, allKittiesData, setAllKittiesData } =
-    useContext(GameContext);
+  const {
+    setCurrKitty,
+    setCurrScreen,
+    currScreen,
+    allKittiesData,
+    setAllKittiesData,
+  } = useContext(GameContext);
   const { account } = useContext(PactContext);
   const features = kitty?.allFeatures ?? kitty?.features;
   const getActions = useGetKittyActions();
   const [availableActions, setAvailableActions] = useState(null);
-  const { currScreen } = useContext(GameContext);
   const isBreedScreen = currScreen === SCREENS.BREED;
+  const showParents = gen === 1 && showFeatures === true;
+
   useEffect(() => {
     (async () => {
       if (showFeatures !== true || availableActions != null) {
@@ -753,12 +820,19 @@ function KittyCard({
   ]);
 
   const borderStyle = gen === 0 ? "solid 2px" : "dashed 1px";
-
+  const zoom = (() => {
+    if (small) {
+      return 0.75;
+    } else if (extraSmall) {
+      return 0.5;
+    }
+    return 1;
+  })();
   return (
     <div
       style={{
         cursor: notClickable === true ? "normal" : "pointer",
-        zoom: small === true ? 0.75 : 1.0,
+        zoom,
       }}
       onClick={() => {
         if (isBreedScreen && secondsUntilBreeding(kitty) > 0) {
@@ -784,9 +858,9 @@ function KittyCard({
     >
       <CenterRow>
         <div style={{ marginRight: 20 }}>
-          {availableActions?.map((action) => {
+          {availableActions?.map((action, i) => {
             return (
-              <div style={{ paddingBottom: 10 }}>
+              <div key={i} style={{ paddingBottom: 10 }}>
                 <KittyActionButton key={action} kitty={kitty} action={action} />
               </div>
             );
@@ -821,7 +895,11 @@ function KittyCard({
               extraStyle={imgStyle}
             />
             <p
-              style={{ fontSize: "1em", marginBottom: 0, textAlign: "center" }}
+              style={{
+                fontSize: "1em",
+                marginBottom: 0,
+                textAlign: "center",
+              }}
             >
               Gen: {gen}
             </p>
@@ -831,6 +909,7 @@ function KittyCard({
           </div>
         </CenterRow>
       </CenterRow>
+      {showParents && <KittyParents kitty={kitty} />}
     </div>
   );
 }
