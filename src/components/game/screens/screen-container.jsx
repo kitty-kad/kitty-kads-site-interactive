@@ -289,6 +289,7 @@ function AllKitties() {
 
 function BreedKitties() {
   const { pagesInfo } = useContext(GameContext);
+  const { account } = useContext(PactContext);
   const { updateSearchParams, updatePageNum, getCurrKittiesAndIsLoading } =
     useImageSearchAndUpdateHelpers();
   const breed = useBreedKitties();
@@ -324,6 +325,17 @@ function BreedKitties() {
       selectedKitties.filter((kitty) => kitty !== kittyToRemove)
     );
   };
+
+  if (account?.account == null) {
+    return (
+      <KittyGuideWithContent>
+        <div>
+          <p>You are signed out</p>
+          <ConnectWalletText />
+        </div>
+      </KittyGuideWithContent>
+    );
+  }
 
   return (
     <CenterRow>
