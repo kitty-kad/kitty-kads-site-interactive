@@ -438,6 +438,7 @@ function Gen1Kitties() {
 
   const headerText = getHeaderText(currScreen, "bred");
 
+  // Search is disabled for now
   return (
     <CenterColumn>
       <KittiesList
@@ -448,11 +449,6 @@ function Gen1Kitties() {
         loading={<Loading text="Fetching kitties..." />}
         empty={<p style={{ textAlign: "center" }}>No kitties found :O</p>}
         header={headerText}
-        search={
-          <SearchFilters
-            setSearchParams={(params) => updateSearchParams(params, currScreen)}
-          />
-        }
       />
     </CenterColumn>
   );
