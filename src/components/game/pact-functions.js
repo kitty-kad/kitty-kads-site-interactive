@@ -283,7 +283,7 @@ function useBreedKitties() {
     ]);
     const previewContent = (
       <p>
-        You will breed kitties with {id1} and {id2} together
+        You will breed kitties with {id1} and {id2} together for 1 KDA
       </p>
     );
     sendTransaction(
