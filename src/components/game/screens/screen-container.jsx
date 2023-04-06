@@ -317,7 +317,13 @@ function BreedKitties() {
       alert("Kitty already selected");
       return;
     }
-    setSelectedKitties([...selectedKitties, kitty]);
+    const newKitties = [...selectedKitties, kitty];
+    const gen1s = newKitties.filter((kitty) => !kitty.id.includes(":"));
+    if (gen1s.length === 2) {
+      alert("You need at least one Gen 0 to breed");
+      return;
+    }
+    setSelectedKitties(newKitties);
   };
 
   const removeSelectedKitty = (kittyToRemove) => {
