@@ -53,12 +53,6 @@ export default function SideMenu(props) {
         active={currScreen === SCREENS.GEN_1_KITTIES}
         onClick={() => setCurrScreen(SCREENS.GEN_1_KITTIES)}
       />
-      <SideMenuButton
-        title="Breed (Beta)"
-        active={currScreen === SCREENS.BREED}
-        // onClick={() => breed("1:3402", "1:5884")}
-        onClick={() => setCurrScreen(SCREENS.BREED)}
-      />
     </div>
   );
 }

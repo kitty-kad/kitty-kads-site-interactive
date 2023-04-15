@@ -21,6 +21,7 @@ import {
   useBuyKitty,
   useBreedKitties,
   useRemoveFromSale,
+  useGetChildrenForKitty,
 } from "../pact-functions";
 import { PactContext } from "../../../wallet/pact-wallet";
 import { useCallback } from "react";
@@ -40,7 +41,6 @@ export default function ScreenContainer(props) {
           {currScreen === SCREENS.BUY && <BuyKitties />}
           {currScreen === SCREENS.DETAILS && <SelectedKitty />}
           {currScreen === SCREENS.GEN_1_KITTIES && <Gen1Kitties />}
-          {currScreen === SCREENS.BREED && <BreedKitties />}
         </>
       )}
     </div>
@@ -603,7 +603,9 @@ function SelectedKitty() {
     return;
   }
   return (
-    <CenterColumn>
+    <div
+      style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
+    >
       <p
         style={{
           cursor: "pointer",
@@ -614,7 +616,7 @@ function SelectedKitty() {
         ⬅ Back
       </p>
       <KittyCard kitty={currKitty} showFeatures={true} notClickable={true} />
-    </CenterColumn>
+    </div>
   );
 }
 
@@ -687,6 +689,56 @@ function noParents(kitty) {
   return false;
 }
 
+function KittyChildren({ kitty }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const { fetchNeededImages, getCurrKittiesAndIsLoading } =
+    useImageSearchAndUpdateHelpers();
+  const getChildrenForKitty = useGetChildrenForKitty();
+  const [childIds, setChildIds] = useState(null);
+  const { id } = kitty;
+  useEffect(() => {
+    (async () => {
+      const ids = await getChildrenForKitty(id);
+      await fetchNeededImages(ids);
+      setChildIds(ids);
+    })();
+  }, []);
+
+  const { currKitties: childKitties, stillLoading } =
+    getCurrKittiesAndIsLoading(childIds ?? []);
+  if (childIds == null || stillLoading) {
+    return <p>Checking for child kitties</p>;
+  }
+  if (childIds.length === 0) {
+    return null;
+  }
+  return <SmallKitties kitties={childKitties} text="It's Kittens" />;
+}
+
+function SmallKitties({ kitties, text }) {
+  if (kitties == null || kitties.length === 0) {
+    return null;
+  }
+  return (
+    <CenterColumn extraStyle={{ paddingTop: 20 }}>
+      <p style={{ marginBottom: 30 }}>{text}</p>
+      <CenterRow>
+        {kitties.map((kitty) => {
+          return (
+            <KittyCard
+              key={kitty.id}
+              kitty={kitty}
+              notClickable={true}
+              extraSmall={true}
+            />
+          );
+        })}
+      </CenterRow>
+    </CenterColumn>
+  );
+}
+
 function KittyParents({ kitty }) {
   const { fetchNeededImages, getCurrKittiesAndIsLoading } =
     useImageSearchAndUpdateHelpers();
@@ -720,23 +772,7 @@ function KittyParents({ kitty }) {
   if (stillLoading) {
     return <p>Looking for the parents</p>;
   }
-  return (
-    <CenterColumn extraStyle={{ paddingTop: 20 }}>
-      <p style={{ marginBottom: 30 }}>The Happy Parents</p>
-      <CenterRow>
-        {parentKitties.map((parentKitty) => {
-          return (
-            <KittyCard
-              key={parentKitty.id}
-              kitty={parentKitty}
-              notClickable={true}
-              extraSmall={true}
-            />
-          );
-        })}
-      </CenterRow>
-    </CenterColumn>
-  );
+  return <SmallKitties kitties={parentKitties} text="The Happy Parents" />;
 }
 
 function KittyCard({
@@ -868,50 +904,53 @@ function KittyCard({
             );
           })}
         </div>
-        <CenterRow
-          extraStyle={{
-            border: `${borderStyle} white`,
-            borderRadius: 21,
-            margin: 9,
-            padding: "10 20",
-            width: "max-content",
-          }}
-        >
-          {showFeatures && (
-            <div>{features != null && <FeaturesInfo {...features} />}</div>
-          )}
-          <div
-            style={{
-              ...centerColumnStyle,
-              maxWidth: 200,
-              minWidth: 200,
-              padding: "10 0",
+        <CenterColumn>
+          <CenterRow
+            extraStyle={{
+              border: `${borderStyle} white`,
+              borderRadius: 21,
+              margin: 9,
+              padding: "10 20",
+              width: "max-content",
             }}
           >
-            {isBreedScreen && <ReadyToBreedText kitty={kitty} />}
-            <p style={idPStyle}>#{number} </p>
-            <p style={minimalistPStyle}>{`(ID: ${id})`}</p>
-            <KittyImg
-              // TODO standardise naming
-              base64={kitty.base64 ?? kitty.base_64}
-              extraStyle={imgStyle}
-            />
-            <p
+            {showFeatures && (
+              <div>{features != null && <FeaturesInfo {...features} />}</div>
+            )}
+            <div
               style={{
-                fontSize: "1em",
-                marginBottom: 0,
-                textAlign: "center",
+                ...centerColumnStyle,
+                maxWidth: 200,
+                minWidth: 200,
+                padding: "10 0",
               }}
             >
-              Gen: {gen}
-            </p>
-            {showPrice && !showFeatures && kitty.price != null && (
-              <p style={idPStyle}>{`${kitty.price} KDA`}</p>
-            )}
-          </div>
-        </CenterRow>
+              {isBreedScreen && <ReadyToBreedText kitty={kitty} />}
+              <p style={idPStyle}>#{number} </p>
+              <p style={minimalistPStyle}>{`(ID: ${id})`}</p>
+              <KittyImg
+                // TODO standardise naming
+                base64={kitty.base64 ?? kitty.base_64}
+                extraStyle={imgStyle}
+              />
+              <p
+                style={{
+                  fontSize: "1em",
+                  marginBottom: 0,
+                  textAlign: "center",
+                }}
+              >
+                Gen: {gen}
+              </p>
+              {showPrice && !showFeatures && kitty.price != null && (
+                <p style={idPStyle}>{`${kitty.price} KDA`}</p>
+              )}
+            </div>
+          </CenterRow>
+          {showParents && <KittyParents kitty={kitty} />}
+          {showFeatures && <KittyChildren kitty={kitty} />}
+        </CenterColumn>
       </CenterRow>
-      {showParents && <KittyParents kitty={kitty} />}
     </div>
   );
 }
@@ -1103,6 +1142,7 @@ const screensStyle = {
   display: "flex",
   height: "700px",
   width: "100%",
+  justifyContent: "center",
   // overflowY: "scroll",
   "&::WebkitScrollbar": { width: 5 },
   padding: "20 0",

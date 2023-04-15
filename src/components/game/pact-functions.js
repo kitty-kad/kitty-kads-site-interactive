@@ -12,6 +12,7 @@ const ALL_IDS_FUNC = "all-ids";
 const ALL_ON_SALE_FUNCTION = "get-all-on-sale";
 const MARKET_PLACE_FIELDS_FOR_ID = "get-marketplace-fields-for-id";
 const MARKET_PLACE_FIELDS_FOR_IDS = "get-marketplace-fields-for-ids";
+const IDS_OF_CHILDREN = "ids-of-children ";
 const NFT_FIELDS_FOR_ID = "get-nft-fields-for-id";
 const BUY_ID_ON_SALE_FUNC = "buy-id-on-sale";
 const PUT_ID_ON_SALE_FUNC = "put-id-for-sale";
@@ -79,6 +80,20 @@ function useGetPricesForKitties() {
     [defaultMeta, readFromContract]
   );
   return getPricesForKitties;
+}
+
+function useGetChildrenForKitty() {
+  const { readFromContract, defaultMeta } = useContext(PactContext);
+  const getChildrenForKitty = useCallback(
+    async (parentId) => {
+      const pactCode = `(free.${GEN_1_CONTRACT}.${IDS_OF_CHILDREN} "${parentId}")`;
+      const meta = defaultMeta();
+      const resp = await readFromContract({ pactCode, meta });
+      return resp.map((idDict) => idDict.id);
+    },
+    [defaultMeta, readFromContract]
+  );
+  return getChildrenForKitty;
 }
 
 function useGetKittyActions() {
@@ -261,16 +276,6 @@ function useRemoveFromSale() {
   };
 }
 
-function useGetGen2Ids() {
-  const { readFromContract, defaultMeta } = useContext(PactContext);
-  const getAllOnSale = useCallback(async () => {
-    const pactCode = `(free.${GEN_1_CONTRACT}.${ALL_ON_SALE_FUNCTION})`;
-    const meta = defaultMeta();
-    return await readFromContract({ pactCode, meta });
-  }, [defaultMeta, readFromContract]);
-  return getAllOnSale;
-}
-
 function useBreedKitties() {
   const { account, sendTransaction } = useContext(PactContext);
   const makeCmd = useCmd();
@@ -381,4 +386,5 @@ export {
   useRemoveFromSale,
   useTransfer,
   useBreedKitties,
+  useGetChildrenForKitty,
 };
