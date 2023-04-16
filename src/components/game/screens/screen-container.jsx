@@ -713,7 +713,14 @@ function KittyChildren({ kitty }) {
   if (childIds.length === 0) {
     return null;
   }
-  return <SmallKitties kitties={childKitties} text="It's Kittens" />;
+  return (
+    <div style={{ paddingBottom: 20 }}>
+      <SmallKitties
+        kitties={childKitties}
+        text={`It's Kittens (${childKitties?.length ?? 0})`}
+      />
+    </div>
+  );
 }
 
 function SmallKitties({ kitties, text }) {
@@ -721,9 +728,9 @@ function SmallKitties({ kitties, text }) {
     return null;
   }
   return (
-    <CenterColumn extraStyle={{ paddingTop: 20 }}>
+    <CenterColumn extraStyle={{ paddingTop: 20, maxWidth: 500 }}>
       <p style={{ marginBottom: 30 }}>{text}</p>
-      <CenterRow>
+      <CenterRow extraStyle={{ overflowX: "hidden", flexWrap: "wrap" }}>
         {kitties.map((kitty) => {
           return (
             <KittyCard
@@ -894,8 +901,8 @@ function KittyCard({
         setCurrKitty(kitty);
       }}
     >
-      <CenterRow>
-        <div style={{ marginRight: 20 }}>
+      <CenterRow extraStyle={{ alignItems: "start" }}>
+        <div style={{ marginRight: 20, marginTop: 100 }}>
           {availableActions?.map((action, i) => {
             return (
               <div key={i} style={{ paddingBottom: 10 }}>
