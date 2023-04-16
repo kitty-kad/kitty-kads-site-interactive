@@ -708,7 +708,7 @@ function KittyChildren({ kitty }) {
   const { currKitties: childKitties, stillLoading } =
     getCurrKittiesAndIsLoading(childIds ?? []);
   if (childIds == null || stillLoading) {
-    return <p>Checking for child kitties</p>;
+    return <p>... Checking for child kitties ...</p>;
   }
   if (childIds.length === 0) {
     return null;
@@ -1143,7 +1143,7 @@ const screensStyle = {
   height: "700px",
   width: "100%",
   justifyContent: "center",
-  // overflowY: "scroll",
+  overflowY: "scroll",
   "&::WebkitScrollbar": { width: 5 },
   padding: "20 0",
 
