@@ -62,7 +62,7 @@ export function SearchFilters({ searchParams, setSearchParams, gen = 0 }) {
           alert("Only 5,000 Gen 1 kitties exist");
         }
         setFilters({ num: gen === 0 ? num : num + 9999, gen });
-        setSearchParams({ id: gen === 0 ? `1:${num - 1}` : parseInt(num) });
+        setSearchParams({ id: gen === 0 ? `1:${num - 1}` : num.toString() });
       } else {
         setFilters({ ...filter });
       }

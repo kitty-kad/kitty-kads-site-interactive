@@ -32,9 +32,6 @@ export async function getIdsForFilters(filters) {
 
 function sortKittiesInPlace(kitties, gen = 0) {
   kitties.sort((kitty1, kitty2) => {
-    if (kitty1.id === "1" || kitty2.id === "1") {
-      console.log(kitty2.id, kitty1.id);
-    }
     if (gen === 1) {
       return parseInt(kitty1.id) - parseInt(kitty2.id);
     }

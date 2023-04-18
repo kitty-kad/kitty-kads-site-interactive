@@ -460,6 +460,7 @@ function Gen1Kitties() {
             setSearchParams={(params) =>
               updateSearchParams(params, currScreen, null, 1)
             }
+            gen={1}
           />
         }
       />
