@@ -48,7 +48,7 @@ export function useImageSearchAndUpdateHelpers() {
     }
   };
 
-  const updateSearchParams = (newSearchParams, screen, sortKey) => {
+  const updateSearchParams = (newSearchParams, screen, sortKey, gen) => {
     // Not ready to search backend
     if (allKittiesData.length === 0) {
       return;
@@ -86,7 +86,8 @@ export function useImageSearchAndUpdateHelpers() {
       if (defaultIds.length !== allKittiesData.length) {
         filters = { ...filters, ids: defaultIds };
       }
-      let allResultsIds = (await getIdsForFilters(filters)).map(
+      filters = { ...filters, gen };
+      let allResultsIds = (await getIdsForFilters(filters, gen)).map(
         (result) => result.id
       );
       allResultsIds = sortKitties(allResultsIds, allKittiesData, sortKey);

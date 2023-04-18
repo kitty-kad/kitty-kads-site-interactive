@@ -26,15 +26,22 @@ export async function getIdsForFilters(filters) {
   const body = filters;
   const res = await fetchJson(url + getIdsSuffix, body);
   const { results } = await res.json();
-  sortKittiesInPlace(results);
+  sortKittiesInPlace(results, filters.gen);
   return results;
 }
 
-function sortKittiesInPlace(kitties) {
-  kitties.sort(
-    (kitty1, kitty2) =>
+function sortKittiesInPlace(kitties, gen = 0) {
+  kitties.sort((kitty1, kitty2) => {
+    if (kitty1.id === "1" || kitty2.id === "1") {
+      console.log(kitty2.id, kitty1.id);
+    }
+    if (gen === 1) {
+      return parseInt(kitty1.id) - parseInt(kitty2.id);
+    }
+    return (
       parseInt(kitty1.id.split(":")[1]) - parseInt(kitty2.id.split(":")[1])
-  );
+    );
+  });
 }
 
 async function fetchJson(url, body) {

@@ -29,7 +29,7 @@ function getFiltersFromSearchParams(searchParams) {
   return filters;
 }
 
-export function SearchFilters({ searchParams, setSearchParams }) {
+export function SearchFilters({ searchParams, setSearchParams, gen = 0 }) {
   const [filters, setFilters] = useState(() =>
     getFiltersFromSearchParams(searchParams)
   );
@@ -55,16 +55,19 @@ export function SearchFilters({ searchParams, setSearchParams }) {
           alert("Invalid number to search by");
           return;
         }
-        if (num > 10000) {
-          alert("Only 10,000 kitties exist");
+        if (gen === 0 && num > 10000) {
+          alert("Only 10,000 Gen 0 kitties exist");
         }
-        setFilters({ num: num });
-        setSearchParams({ id: `1:${num - 1}` });
+        if ((gen === 1) & (num > 5000)) {
+          alert("Only 5,000 Gen 1 kitties exist");
+        }
+        setFilters({ num: gen === 0 ? num : num + 9999, gen });
+        setSearchParams({ id: gen === 0 ? `1:${num - 1}` : parseInt(num) });
       } else {
-        setFilters({ ...filters, ...filter });
+        setFilters({ ...filter });
       }
     },
-    [filters, setFilters, setSearchParams]
+    [filters, setFilters, setSearchParams, gen]
   );
 
   return (

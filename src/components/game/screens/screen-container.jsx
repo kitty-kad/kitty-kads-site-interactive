@@ -455,6 +455,13 @@ function Gen1Kitties() {
         loading={<Loading text="Fetching kitties..." />}
         empty={<p style={{ textAlign: "center" }}>No kitties found :O</p>}
         header={headerText}
+        search={
+          <SearchFilters
+            setSearchParams={(params) =>
+              updateSearchParams(params, currScreen, null, 1)
+            }
+          />
+        }
       />
     </CenterColumn>
   );
