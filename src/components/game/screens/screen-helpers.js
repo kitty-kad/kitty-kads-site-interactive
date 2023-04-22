@@ -96,6 +96,13 @@ export function useImageSearchAndUpdateHelpers() {
     searchFiltersFromServer(newSearchParams);
   };
 
+  const updateGen = (screen, gen) => {
+    const { page, defaultIds } = pagesInfo[screen];
+    const newAllResultIds = idsForGen(defaultIds, gen);
+    const idsToShow = idsNeededForPage(page, newAllResultIds);
+    updatePagesInfo(defaultIds, newAllResultIds, screen);
+    fetchNeededImages(idsToShow);
+  };
   const updatePage = (pageData) => {
     // Fetch specific ids to show if not loaded and show all ids
     const { allResultsIds, page } = pageData;
@@ -117,7 +124,7 @@ export function useImageSearchAndUpdateHelpers() {
       ...currScreenInfo,
       defaultIds,
       allResultsIds: allResultsIds,
-      currIds: allResultsIds.slice(0, 100),
+      currIds: idsNeededForPage(0, allResultsIds),
       page: 0,
     };
     const newPagesInfo = { ...pagesInfo, [screen]: newPageData };
@@ -128,13 +135,15 @@ export function useImageSearchAndUpdateHelpers() {
   const handleFirstLoad = async (
     getDefaultIds,
     screen,
-    sortKey = SORT_KEYS.LOWEST_ID
+    sortKey = SORT_KEYS.LOWEST_ID,
+    getResultsIds = (ids) => ids
   ) => {
     const currScreenInfo = pagesInfo[screen] ?? {};
     if (currScreenInfo?.currIds == null) {
       let defaultIds = await getDefaultIds();
       defaultIds = sortKitties(defaultIds, allKittiesData, sortKey);
-      updatePagesInfo(defaultIds, defaultIds, screen);
+      const allResultsIds = getResultsIds(defaultIds);
+      updatePagesInfo(defaultIds, allResultsIds, screen);
     }
   };
 
@@ -185,6 +194,7 @@ export function useImageSearchAndUpdateHelpers() {
     updatePageNum,
     handleFirstLoad,
     getHeaderText,
+    updateGen,
     getCurrKittiesAndIsLoading,
     updatePagesInfo,
   };

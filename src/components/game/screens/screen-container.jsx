@@ -73,9 +73,14 @@ function useFirstLoadMyKitties(currScreen) {
     if (account?.account == null) {
       return;
     }
-    handleFirstLoad(async () => {
-      return (await getMyKitties()).map((kitty) => kitty.id);
-    }, currScreen);
+    handleFirstLoad(
+      async () => {
+        return (await getMyKitties()).map((kitty) => kitty.id);
+      },
+      currScreen,
+      SORT_KEYS.LOWEST_ID,
+      (idsToFilter) => idsForGen(idsToFilter, 0)
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [account, pagesInfo]);
 }
@@ -89,23 +94,16 @@ function MyKitties() {
     updatePageNum,
     getHeaderText,
     getCurrKittiesAndIsLoading,
+    updateGen,
   } = useImageSearchAndUpdateHelpers();
   useFirstLoadMyKitties(currScreen);
 
   const { page, allResultsIds, currIds } = pagesInfo[currScreen] ?? {};
   const [gen0Override, setGen0Ovveride] = useState(0);
 
-  const [currIdsForGen, setCurrIdsForGen] = useState(() => {
-    return idsForGen(currIds, gen0Override);
-  });
-
-  useEffect(() => {
-    setCurrIdsForGen(idsForGen(currIds, gen0Override));
-  }, [setCurrIdsForGen, currIds, gen0Override]);
-
   const { currKitties, stillLoading } = useMemo(() => {
-    return getCurrKittiesAndIsLoading(currIdsForGen);
-  }, [getCurrKittiesAndIsLoading, currIdsForGen]);
+    return getCurrKittiesAndIsLoading(currIds);
+  }, [getCurrKittiesAndIsLoading, currIds]);
 
   if (account?.account == null) {
     return (
@@ -131,7 +129,10 @@ function MyKitties() {
       search={
         <SearchFilters
           gen0Override={gen0Override}
-          setGen0Ovveride={setGen0Ovveride}
+          setGen0Ovveride={(gen) => {
+            updateGen(currScreen, gen);
+            setGen0Ovveride(gen);
+          }}
           setSearchParams={(params, gen) =>
             updateSearchParams(params, currScreen, null, gen)
           }
