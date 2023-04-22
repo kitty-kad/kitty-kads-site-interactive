@@ -80,7 +80,7 @@ export function SearchFilters({
           genToUse
         );
       } else {
-        setFilters({ ...filter });
+        setFilters({ ...filters, ...filter });
       }
     },
     [filters, setFilters, setSearchParams, gen, gen0Override]

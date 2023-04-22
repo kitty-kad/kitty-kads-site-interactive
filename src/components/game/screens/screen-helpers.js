@@ -1,18 +1,13 @@
-import React, { useState, useContext, useCallback } from "react";
-import { SCREENS, SORT_KEYS } from "../consts";
+import { useState, useContext, useCallback } from "react";
+import { SORT_KEYS } from "../consts";
 import { GameContext } from "../game-context";
 import { useGetAllKitties } from "../pact-functions";
-import {
-  getImagesForIds,
-  getKittiesForFilters,
-  getIdsForFilters,
-} from "../server";
+import { getImagesForIds, getIdsForFilters } from "../server";
 
 export const PAGE_SIZE = 100;
 
 export function useFetchAllKittiesInit() {
   const { setAllKittiesData } = useContext(GameContext);
-  const [kittiesToShow, setKittiesToShow] = useState(null);
   const getAllKitties = useGetAllKitties();
   // Initialize all kitties data
   useState(() => {
