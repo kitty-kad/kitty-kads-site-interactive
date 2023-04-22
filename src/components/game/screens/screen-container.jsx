@@ -11,6 +11,7 @@ import {
   useImageSearchAndUpdateHelpers,
   getPagesCount,
   idToIndex,
+  idsForGen,
   sortKitties,
 } from "./screen-helpers";
 import {
@@ -92,10 +93,19 @@ function MyKitties() {
   useFirstLoadMyKitties(currScreen);
 
   const { page, allResultsIds, currIds } = pagesInfo[currScreen] ?? {};
+  const [gen0Override, setGen0Ovveride] = useState(0);
+
+  const [currIdsForGen, setCurrIdsForGen] = useState(() => {
+    return idsForGen(currIds, gen0Override);
+  });
+
+  useEffect(() => {
+    setCurrIdsForGen(idsForGen(currIds, gen0Override));
+  }, [setCurrIdsForGen, currIds, gen0Override]);
 
   const { currKitties, stillLoading } = useMemo(() => {
-    return getCurrKittiesAndIsLoading(currIds);
-  }, [currIds, getCurrKittiesAndIsLoading]);
+    return getCurrKittiesAndIsLoading(currIdsForGen);
+  }, [getCurrKittiesAndIsLoading, currIdsForGen]);
 
   if (account?.account == null) {
     return (
@@ -120,7 +130,11 @@ function MyKitties() {
       header={headerText}
       search={
         <SearchFilters
-          setSearchParams={(params) => updateSearchParams(params, currScreen)}
+          gen0Override={gen0Override}
+          setGen0Ovveride={setGen0Ovveride}
+          setSearchParams={(params, gen) =>
+            updateSearchParams(params, currScreen, null, gen)
+          }
         />
       }
     />

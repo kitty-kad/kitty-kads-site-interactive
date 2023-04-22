@@ -76,7 +76,7 @@ export function useImageSearchAndUpdateHelpers() {
         currIds,
       };
       setPagesInfo({ ...pagesInfo, [screen]: newPageData });
-      fetchNeededImages(currIds, 0);
+      fetchNeededImages(currIds);
       return;
     }
     const searchFiltersFromServer = async (filters) => {
@@ -231,6 +231,13 @@ export function idToIndex(id) {
 function sortIds(ids) {
   // Copy the ids so we don't mutate the original and sort
   return [...ids].sort((id1, id2) => idToIndex(id1) - idToIndex(id2));
+}
+
+export function idsForGen(ids, gen) {
+  if (ids == null) {
+    return null;
+  }
+  return ids.filter((id) => (gen === 0 ? id.includes(":") : !id.includes(":")));
 }
 
 function idsNeededForPage(page, currIds) {

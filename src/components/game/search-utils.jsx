@@ -15,7 +15,11 @@ import FormControl from "@mui/material/FormControl";
 
 import FEATURES_JSON from "./features.json";
 
-import { CenterColumn, textFontFamily } from "./screens/screen-container";
+import {
+  CenterColumn,
+  CenterRow,
+  textFontFamily,
+} from "./screens/screen-container";
 import { useCallback } from "react";
 
 function getFiltersFromSearchParams(searchParams) {
@@ -29,16 +33,23 @@ function getFiltersFromSearchParams(searchParams) {
   return filters;
 }
 
-export function SearchFilters({ searchParams, setSearchParams, gen = 0 }) {
+export function SearchFilters({
+  searchParams,
+  setSearchParams,
+  gen,
+  gen0Override,
+  setGen0Ovveride,
+}) {
   const [filters, setFilters] = useState(() =>
     getFiltersFromSearchParams(searchParams)
   );
 
   const onFilterChanged = useCallback(
     (filter, optionalExtraValue) => {
+      const genToUse = gen ?? gen0Override;
       if (filter === "RESET") {
         setFilters({});
-        setSearchParams({});
+        setSearchParams({}, genToUse);
       } else if (filter === "CLEAR" && optionalExtraValue != null) {
         const withoutFilter = { ...filters };
         delete withoutFilter[optionalExtraValue];
@@ -48,56 +59,89 @@ export function SearchFilters({ searchParams, setSearchParams, gen = 0 }) {
         Object.entries(filters).forEach(([_, values]) => {
           parsedFilters.push(values);
         });
-        setSearchParams({ filters: parsedFilters });
+        setSearchParams({ filters: parsedFilters }, genToUse);
       } else if (filter === "NUMBER") {
         const num = parseInt(optionalExtraValue);
         if (num === "NaN") {
           alert("Invalid number to search by");
           return;
         }
-        if (gen === 0 && num > 10000) {
+        if (genToUse === 0 && num > 10000) {
           alert("Only 10,000 Gen 0 kitties exist");
         }
-        if ((gen === 1) & (num > 5000)) {
+        if ((genToUse === 1) & (num > 5000)) {
           alert("Only 5,000 Gen 1 kitties exist");
         }
-        setFilters({ num: gen === 0 ? num : num + 9999, gen });
-        setSearchParams({ id: gen === 0 ? `1:${num - 1}` : num.toString() });
+        setFilters({ num: genToUse === 0 ? num : num + 9999, genToUse });
+        setSearchParams(
+          {
+            id: genToUse === 0 ? `1:${num - 1}` : num.toString(),
+          },
+          genToUse
+        );
       } else {
         setFilters({ ...filter });
       }
     },
-    [filters, setFilters, setSearchParams, gen]
+    [filters, setFilters, setSearchParams, gen, gen0Override]
   );
 
   return (
     <ConfigureFiltersButton
       filters={filters}
       onFilterChanged={onFilterChanged}
+      gen0Override={gen0Override}
+      setGen0Ovveride={setGen0Ovveride}
     />
   );
 }
 
-function ConfigureFiltersButton({ filters, onFilterChanged }) {
+function GenText({ gen }) {
+  return (
+    <p style={{ margin: 0, fontSize: 14, textTransform: "uppercase" }}>
+      {gen === 0 ? "Gen 0" : "Gen 1"}
+    </p>
+  );
+}
+
+function ConfigureFiltersButton({
+  filters,
+  onFilterChanged,
+  gen0Override,
+  setGen0Ovveride,
+}) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
     <div>
-      <button
-        className="btn btn-custom btn-sm"
-        style={{ fontSize: 12 }}
-        onClick={() => setIsModalOpen(true)}
-      >
-        Filter
-      </button>
-      <FiltersModal
-        isOpen={isModalOpen}
-        closeModal={() => {
-          setIsModalOpen(false);
-        }}
-        filters={filters}
-        onFilterChanged={onFilterChanged}
-      />
+      <CenterRow>
+        {gen0Override != null && (
+          <>
+            <GenText gen={0} />
+            <Switch
+              checked={gen0Override === 1} // relevant state for your case
+              onChange={(_, checked) => setGen0Ovveride(checked ? 1 : 0)} // relevant method to handle your change
+            />
+            <GenText gen={1} />
+            <div style={{ marginRight: 20 }} />
+          </>
+        )}
+        <button
+          className="btn btn-custom btn-sm"
+          style={{ fontSize: 12 }}
+          onClick={() => setIsModalOpen(true)}
+        >
+          Filter
+        </button>
+        <FiltersModal
+          isOpen={isModalOpen}
+          closeModal={() => {
+            setIsModalOpen(false);
+          }}
+          filters={filters}
+          onFilterChanged={onFilterChanged}
+        />
+      </CenterRow>
     </div>
   );
 }
