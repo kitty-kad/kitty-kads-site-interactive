@@ -147,9 +147,9 @@ export function useImageSearchAndUpdateHelpers() {
     const { allResultsIds, defaultIds } = pagesInfo?.[screen] ?? {};
     if (
       Object.keys(searchParams ?? {}).length === 0 &&
-      defaultIds?.length != null
+      allResultsIds?.length != null
     ) {
-      headerText = `${defaultIds.length} ${kittiesStr(
+      headerText = `${allResultsIds.length} ${kittiesStr(
         allKittiesData.length
       )} ${defaultText}`;
     } else if (allResultsIds?.length != null) {

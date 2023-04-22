@@ -116,7 +116,12 @@ function MyKitties() {
     );
   }
 
-  const headerText = getHeaderText(currScreen, "were given a home by you");
+  const headerText = getHeaderText(
+    currScreen,
+    gen0Override === 0
+      ? "Gen 0s were given a home by you"
+      : "Gen 1s were given a home by you"
+  );
   return (
     <KittiesList
       pages={getPagesCount(allResultsIds?.length ?? 1)}
@@ -713,8 +718,6 @@ function noParents(kitty) {
 }
 
 function KittyChildren({ kitty }) {
-  const [isOpen, setIsOpen] = useState(false);
-
   const { fetchNeededImages, getCurrKittiesAndIsLoading } =
     useImageSearchAndUpdateHelpers();
   const getChildrenForKitty = useGetChildrenForKitty();
