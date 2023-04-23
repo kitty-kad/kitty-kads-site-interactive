@@ -20,7 +20,6 @@ import {
   useGetKittyActions,
   useGetPricesForKitties,
   useBuyKitty,
-  useBreedKitties,
   useRemoveFromSale,
   useGetChildrenForKitty,
 } from "../pact-functions";
@@ -99,7 +98,7 @@ function MyKitties() {
   useFirstLoadMyKitties(currScreen);
 
   const { page, allResultsIds, currIds } = pagesInfo[currScreen] ?? {};
-  const [gen0Override, setGen0Ovveride] = useState(0);
+  const [gen0Override, setGen0Ovveride] = useGen0Override(currScreen);
 
   const { currKitties, stillLoading } = useMemo(() => {
     return getCurrKittiesAndIsLoading(currIds);
@@ -147,6 +146,18 @@ function MyKitties() {
   );
 }
 
+function useGen0Override(currScreen) {
+  const { pagesInfo } = useContext(GameContext);
+  const { allResultsIds } = pagesInfo[currScreen] ?? {};
+  const [gen0Override, setGen0Ovveride] = useState(() => {
+    if (allResultsIds == null || allResultsIds.legth === 0) {
+      return 0;
+    }
+    return allResultsIds[0].includes(":") ? 0 : 1;
+  });
+  return [gen0Override, setGen0Ovveride];
+}
+
 function BuyKitties() {
   const { pagesInfo, allKittiesData, setAllKittiesData } =
     useContext(GameContext);
@@ -157,6 +168,7 @@ function BuyKitties() {
     getHeaderText,
     updatePagesInfo,
     getCurrKittiesAndIsLoading,
+    updateGen,
   } = useImageSearchAndUpdateHelpers();
 
   const currScreen = SCREENS.BUY;
@@ -164,11 +176,17 @@ function BuyKitties() {
   const getKittiesOnSale = useGetKittiesOnSale();
   const getPricesForKitties = useGetPricesForKitties();
   const [sortKey, setSortKey] = useState(SORT_KEYS.LOWEST_ID);
+  const [gen0Override, setGen0Ovveride] = useGen0Override(currScreen);
 
   useEffect(() => {
     (async () => {
       const ids = (await getKittiesOnSale()).map((kitty) => kitty.id);
-      handleFirstLoad(async () => ids, currScreen);
+      handleFirstLoad(
+        async () => ids,
+        currScreen,
+        SORT_KEYS.LOWEST_ID,
+        (idsToFilter) => idsForGen(idsToFilter, gen0Override)
+      );
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -234,7 +252,10 @@ function BuyKitties() {
     [updatePagesInfo, defaultIds, allResultsIds, allKittiesData, currScreen]
   );
 
-  const headerText = getHeaderText(currScreen, "are up for sale");
+  const headerText = getHeaderText(
+    currScreen,
+    gen0Override === 0 ? "Gen 0s up for sale" : "Gen 1s up for sale"
+  );
   return (
     <KittiesList
       pages={getPagesCount(allResultsIds?.length ?? 1)}
@@ -247,6 +268,11 @@ function BuyKitties() {
       showPrice={true}
       search={
         <SearchFilters
+          gen0Override={gen0Override}
+          setGen0Ovveride={(gen) => {
+            updateGen(currScreen, gen);
+            setGen0Ovveride(gen);
+          }}
           setSearchParams={(params) =>
             updateSearchParams(params, currScreen, sortKey)
           }
@@ -304,135 +330,6 @@ function AllKitties() {
         }
       />
     </CenterColumn>
-  );
-}
-
-function BreedKitties() {
-  const { pagesInfo } = useContext(GameContext);
-  const { account } = useContext(PactContext);
-  const { updateSearchParams, updatePageNum, getCurrKittiesAndIsLoading } =
-    useImageSearchAndUpdateHelpers();
-  const breed = useBreedKitties();
-
-  const currScreen = SCREENS.BREED;
-
-  // Handle first load
-  useFirstLoadMyKitties(currScreen);
-
-  const currPageInfo = pagesInfo[currScreen] ?? {};
-  let { currIds, allResultsIds, page } = currPageInfo;
-
-  const [selectedKitties, setSelectedKitties] = useState([]);
-
-  const { currKitties, stillLoading } = useMemo(() => {
-    return getCurrKittiesAndIsLoading(currIds);
-  }, [currIds, getCurrKittiesAndIsLoading]);
-
-  const addSelectedKitty = (kitty) => {
-    if (selectedKitties.length > 1) {
-      alert("2 kitties already selected, unselect one first");
-      return;
-    }
-    if (selectedKitties.includes(kitty)) {
-      alert("Kitty already selected");
-      return;
-    }
-    const newKitties = [...selectedKitties, kitty];
-    const gen1s = newKitties.filter((kitty) => !kitty.id.includes(":"));
-    if (gen1s.length === 2) {
-      alert("You need at least one Gen 0 to breed");
-      return;
-    }
-    setSelectedKitties(newKitties);
-  };
-
-  const removeSelectedKitty = (kittyToRemove) => {
-    setSelectedKitties(
-      selectedKitties.filter((kitty) => kitty !== kittyToRemove)
-    );
-  };
-
-  if (account?.account == null) {
-    return (
-      <KittyGuideWithContent>
-        <div>
-          <p>You are signed out</p>
-          <ConnectWalletText />
-        </div>
-      </KittyGuideWithContent>
-    );
-  }
-
-  return (
-    <CenterRow>
-      <CenterColumn
-        extraStyle={{
-          width: "30%",
-          height: "100%",
-          justifyContent: "flex-start",
-        }}
-      >
-        <Header text="The kitties in love" />
-        {selectedKitties.length === 0 && (
-          <p style={{ textAlign: "center" }}>Select kitties from the right</p>
-        )}
-        {selectedKitties.length === 1 && (
-          <p style={{ textAlign: "center" }}>Select one more kitty</p>
-        )}
-        {selectedKitties.length === 2 && (
-          <div style={{ paddingTop: 20, paddingBottom: 20 }}>
-            <button
-              className="btn btn-custom btn-sm"
-              style={{ fontSize: 12 }}
-              onClick={() => {
-                breed(selectedKitties[0].id, selectedKitties[1].id, () =>
-                  navigateWithRefresh(SCREENS.MY_KITTIES)
-                );
-              }}
-            >
-              Make Kittens
-            </button>
-          </div>
-        )}
-        {selectedKitties.map((kitty) => {
-          return (
-            <div style={{ paddingBottom: 15 }}>
-              <KittyCard
-                key={kitty.id}
-                kitty={kitty}
-                showPrice={false}
-                onClickKitty={() => removeSelectedKitty(kitty)}
-                small={true}
-              />
-            </div>
-          );
-        })}
-      </CenterColumn>
-      <CenterColumn
-        extraStyle={{
-          maxHeight: "100%",
-          justifyContent: "flex-start",
-          height: "100%",
-        }}
-      >
-        <KittiesList
-          pages={getPagesCount(allResultsIds?.length ?? 1)}
-          page={page ?? 0}
-          setPage={(number) => updatePageNum(number, currScreen)}
-          kitties={stillLoading ? null : currKitties}
-          loading={<Loading text="Looking for your kitties..." />}
-          empty={<p style={{ textAlign: "center" }}>No kitties found :O</p>}
-          search={
-            <SearchFilters
-              setSearchParams={(params) =>
-                updateSearchParams(params, currScreen)
-              }
-            />
-          }
-          onClickKitty={addSelectedKitty}
-        />
-      </CenterColumn>
-    </CenterRow>
   );
 }
 
@@ -1148,7 +1045,11 @@ function KittyGuideWithContent({ children }) {
 function KittyGuide() {
   return (
     <div style={{ width: 400 }}>
-      <img style={{ width: "100%" }} src="/img/kittykad.png" />
+      <img
+        alt="Kitty Guide"
+        style={{ width: "100%" }}
+        src="/img/kittykad.png"
+      />
     </div>
   );
 }

@@ -7,7 +7,6 @@ const KITTY_KADS_CONTRACT = "kitty-kad-kitties";
 const GEN_1_CONTRACT = "gen-1-kitty-kad-kitties";
 
 const OWNED_BY_FUNC = "ids-owned-by";
-const BREED_GEN_1_FUNC = "mint-kitty";
 const ALL_IDS_FUNC = "all-ids";
 const ALL_ON_SALE_FUNCTION = "get-all-on-sale";
 const MARKET_PLACE_FIELDS_FOR_ID = "get-marketplace-fields-for-id";
@@ -60,9 +59,16 @@ function useGetAllKitties() {
 function useGetKittiesOnSale() {
   const { readFromContract, defaultMeta } = useContext(PactContext);
   const getAllOnSale = useCallback(async () => {
-    const pactCode = `(free.${KITTY_KADS_CONTRACT}.${ALL_ON_SALE_FUNCTION})`;
+    const pactCodeGen0 = `(free.${KITTY_KADS_CONTRACT}.${ALL_ON_SALE_FUNCTION})`;
+    const pactCodeGen1 = `(free.${GEN_1_CONTRACT}.${ALL_ON_SALE_FUNCTION})`;
+
     const meta = defaultMeta();
-    return await readFromContract({ pactCode, meta });
+    // return await readFromContract({ pactCode, meta });
+    const [gen0s, gen1s] = await Promise.all([
+      readFromContract({ pactCode: pactCodeGen0, meta }),
+      readFromContract({ pactCode: pactCodeGen1, meta }),
+    ]);
+    return [...gen0s, ...gen1s];
   }, [defaultMeta, readFromContract]);
   return getAllOnSale;
 }
@@ -71,11 +77,20 @@ function useGetPricesForKitties() {
   const { readFromContract, defaultMeta } = useContext(PactContext);
   const getPricesForKitties = useCallback(
     async (ids) => {
-      const pactCode = `(free.${KITTY_KADS_CONTRACT}.${MARKET_PLACE_FIELDS_FOR_IDS} ["price"] ${JSON.stringify(
-        ids
+      const gen0Ids = ids.filter((id) => gen(id) === 0);
+      const gen1Ids = ids.filter((id) => gen(id) === 1);
+      const pactCodeGen0 = `(free.${KITTY_KADS_CONTRACT}.${MARKET_PLACE_FIELDS_FOR_IDS} ["price"] ${JSON.stringify(
+        gen0Ids
+      )})`;
+      const pactCodeGen1 = `(free.${GEN_1_CONTRACT}.${MARKET_PLACE_FIELDS_FOR_IDS} ["price"] ${JSON.stringify(
+        gen1Ids
       )})`;
       const meta = defaultMeta();
-      return await readFromContract({ pactCode, meta });
+      const [gen0s, gen1s] = await Promise.all([
+        readFromContract({ pactCode: pactCodeGen0, meta }),
+        readFromContract({ pactCode: pactCodeGen1, meta }),
+      ]);
+      return [...gen0s, ...gen1s];
     },
     [defaultMeta, readFromContract]
   );
@@ -146,13 +161,14 @@ function useBuyKitty() {
   return async (id, price, sellerAddress, callback) => {
     const priceAsString = getPriceString(price);
     const { fee, toSeller } = await getFeeAndToSeller(priceAsString);
-    const pactCode = `(free.${KITTY_KADS_CONTRACT}.${BUY_ID_ON_SALE_FUNC} "${id}" "${account.account}")`;
+    const contract = id.includes(":") ? KITTY_KADS_CONTRACT : GEN_1_CONTRACT;
+    const pactCode = `(free.${contract}.${BUY_ID_ON_SALE_FUNC} "${id}" "${account.account}")`;
 
     const cmd = {
       pactCode,
       caps: [
         ...buyFeesCaps(account, sellerAddress, toSeller, fee),
-        ...accountGuardCap(account),
+        ...accountGuardCap(account, id),
         gasCap(),
       ],
       sender: account.account,
@@ -176,7 +192,7 @@ function useBuyKitty() {
       cmd,
       previewContent,
       `buying ${id}`,
-      callback ?? (() => alert(`bought ${id}!`))
+      callback ?? (() => alert(`bought ID ${id}!`))
     );
   };
 }
@@ -190,11 +206,13 @@ function usePutOnSale() {
     useContext(PactContext);
   return async (id, price, callback) => {
     const priceAsString = getPriceString(price);
-    const pactCode = `(free.${KITTY_KADS_CONTRACT}.${PUT_ID_ON_SALE_FUNC} "${id}" ${priceAsString})`;
+    const pactCode = `(free.${contractForGen(
+      id
+    )}.${PUT_ID_ON_SALE_FUNC} "${id}" ${priceAsString})`;
 
     const cmd = {
       pactCode,
-      caps: [...ownerCaps(account), gasCap()],
+      caps: [...ownerCaps(account, id), gasCap()],
       sender: account.account,
       gasLimit: 10000,
       gasPrice,
@@ -209,14 +227,14 @@ function usePutOnSale() {
     };
     const previewContent = (
       <p>
-        You will put {id} on sale for {price} KDA
+        You will put ID {id} on sale for {price} KDA
       </p>
     );
     sendTransaction(
       cmd,
       previewContent,
       `putting ${id} for sale at ${price} KDA`,
-      callback ?? (() => alert(`put ${id} for sale at ${price} KDA`))
+      callback ?? (() => alert(`put ID ${id} for sale at ${price} KDA`))
     );
   };
 }
@@ -225,10 +243,11 @@ function useTransfer() {
   const { account, gasPrice, chainId, netId, sendTransaction } =
     useContext(PactContext);
   return async (id, receiver, callback) => {
-    const pactCode = `(free.${KITTY_KADS_CONTRACT}.${TRANSFER_FUNC} "${id}" "${account.account}" "${receiver}" 1.0)`;
+    const contract = id.includes(":") ? KITTY_KADS_CONTRACT : GEN_1_CONTRACT;
+    const pactCode = `(free.${contract}.${TRANSFER_FUNC} "${id}" "${account.account}" "${receiver}" 1.0)`;
     const cmd = {
       pactCode,
-      caps: [...ownerCaps(account), gasCap()],
+      caps: [...ownerCaps(account, id), gasCap()],
       sender: account.account,
       gasLimit: 10000,
       gasPrice,
@@ -256,47 +275,33 @@ function useTransfer() {
       cmd,
       previewContent,
       `sending ${id} to ${receiver.substring(0, 10)}`,
-      callback ?? (() => alert(`sent ${id} to ${receiver.substring(0, 10)}`))
+      callback ?? (() => alert(`sent ID ${id} to ${receiver.substring(0, 10)}`))
     );
   };
+}
+
+function contractForGen(id) {
+  return gen(id) === 0 ? KITTY_KADS_CONTRACT : GEN_1_CONTRACT;
+}
+
+function gen(id) {
+  return id.includes(":") ? 0 : 1;
 }
 
 function useRemoveFromSale() {
   const { account, sendTransaction } = useContext(PactContext);
   const makeCmd = useCmd();
   return async (id, callback) => {
-    const pactCode = `(free.${KITTY_KADS_CONTRACT}.${REMOVE_ID_ON_SALE_FUNC} "${id}")`;
-    const cmd = makeCmd(pactCode, [...ownerCaps(account), gasCap()]);
+    const pactCode = `(free.${contractForGen(
+      id
+    )}.${REMOVE_ID_ON_SALE_FUNC} "${id}")`;
+    const cmd = makeCmd(pactCode, [...ownerCaps(account, id), gasCap()]);
     const previewContent = <p>You will remove {id} from sale</p>;
     sendTransaction(
       cmd,
       previewContent,
       `remove ${id} from sale`,
-      callback ?? (() => alert(`removed ${id} from sale`))
-    );
-  };
-}
-
-function useBreedKitties() {
-  const { account, sendTransaction } = useContext(PactContext);
-  const makeCmd = useCmd();
-  return async (id1, id2, callback) => {
-    const pactCode = `(free.${GEN_1_CONTRACT}.${BREED_GEN_1_FUNC} "${id1}" "${id2}" "${account.account}")`;
-    const cmd = makeCmd(pactCode, [
-      ...ownerCaps(account),
-      gasCap(),
-      marketplaceCap(account, 1.0),
-    ]);
-    const previewContent = (
-      <p>
-        You will breed kitties with {id1} and {id2} together for 1 KDA
-      </p>
-    );
-    sendTransaction(
-      cmd,
-      previewContent,
-      `Bred kitties ${id1} and ${id2}`,
-      callback ?? (() => alert(`Bred kitties ${id1} and ${id2}`))
+      callback ?? (() => alert(`removed ID ${id} from sale`))
     );
   };
 }
@@ -320,36 +325,24 @@ function useCmd() {
   });
 }
 
-function ownerCaps(account) {
+function ownerCaps(account, id) {
   return [
     Pact.lang.mkCap(
       "Verify you are the owner",
       "Verify you are the owner",
-      `free.${KITTY_KADS_CONTRACT}.OWNER`,
+      `free.${contractForGen(id)}.OWNER`,
       [account.account]
     ),
-    Pact.lang.mkCap(
-      "Verify you are the owner",
-      "Verify you are the owner",
-      `free.${GEN_1_CONTRACT}.OWNER`,
-      [account.account]
-    ),
-    ...accountGuardCap(account),
+    ...accountGuardCap(account, id),
   ];
 }
 
-function accountGuardCap(account) {
+function accountGuardCap(account, id) {
   return [
     Pact.lang.mkCap(
       "Verify your account",
       "Verify your account",
-      `free.${KITTY_KADS_CONTRACT}.ACCOUNT_GUARD`,
-      [account.account]
-    ),
-    Pact.lang.mkCap(
-      "Verify your account",
-      "Verify your account",
-      `free.${GEN_1_CONTRACT}.ACCOUNT_GUARD`,
+      `free.${contractForGen(id)}.ACCOUNT_GUARD`,
       [account.account]
     ),
   ];
@@ -386,6 +379,5 @@ export {
   usePutOnSale,
   useRemoveFromSale,
   useTransfer,
-  useBreedKitties,
   useGetChildrenForKitty,
 };
