@@ -100,8 +100,9 @@ function useGetKittyActions() {
   const { readFromContract, defaultMeta } = useContext(PactContext);
   const getAllOnSale = useCallback(
     async (id) => {
-      const pactCodeNft = `(free.${KITTY_KADS_CONTRACT}.${NFT_FIELDS_FOR_ID} ["owner"] "${id}")`;
-      const pactCodeMarket = `(free.${KITTY_KADS_CONTRACT}.${MARKET_PLACE_FIELDS_FOR_ID} ["for-sale", "owner", "price"] "${id}")`;
+      const contract = id.includes(":") ? KITTY_KADS_CONTRACT : GEN_1_CONTRACT;
+      const pactCodeNft = `(free.${contract}.${NFT_FIELDS_FOR_ID} ["owner"] "${id}")`;
+      const pactCodeMarket = `(free.${contract}.${MARKET_PLACE_FIELDS_FOR_ID} ["for-sale", "owner", "price"] "${id}")`;
 
       const meta = defaultMeta();
       const [nftData, marketData] = await Promise.all([
