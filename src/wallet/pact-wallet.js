@@ -2,11 +2,11 @@ import React, { useState, createContext, useEffect } from "react";
 
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
 import TransactionModal from "./TransactionModal";
 import ConnectWalletModal from "./ConnectWalletModal";
 import Pact from "pact-lang-api";
 import { useCallback } from "react";
+// import { useWalletConnect } from "./wallet-connect";
 
 export const PactContext = createContext();
 export const DEFAULT_GAS_PRICE = 0.0000001;
@@ -156,8 +156,10 @@ export const PactContextProvider = ({ children }) => {
   const clearTransaction = () => {
     setCurrTransactionState({});
   };
+  // const { session, connect, disconnect, isInitializing } = useWalletConnect();
 
   const openConnectWallet = async (account) => {
+    // await connect();
     setIsConnectWallet(true);
   };
 

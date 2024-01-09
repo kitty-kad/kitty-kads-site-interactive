@@ -11,6 +11,7 @@ import { Projects } from "./components/projects";
 import JsonData from "./data/data.json";
 import SmoothScroll from "smooth-scroll";
 import { PactContextProvider } from "./wallet/pact-wallet";
+import Client from "@walletconnect/sign-client";
 
 global.Buffer = Buffer;
 

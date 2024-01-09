@@ -1,15 +1,9 @@
-import React, { useContext, useState, useEffect } from "react";
-import { Header, Modal, Menu, Icon, Message } from "semantic-ui-react";
-import styled from "styled-components/macro";
+import React, { useContext, useState } from "react";
+import { Modal, Menu, Icon } from "semantic-ui-react";
 import Input from "../../components/shared/Input";
 import Button from "../../components/shared/Button";
 import { PactContext } from "../../contexts/PactContext";
-import theme from "../../styles/theme";
-import Checkbox from "../../components/shared/Checkbox";
-import { ReactComponent as LockIcon } from "../../assets/images/shared/lock.svg";
-import { ReactComponent as UnlockIcon } from "../../assets/images/shared/unlock.svg";
 import getAccounts from "../../utils/getZelcoreAccts";
-import swal from "@sweetalert/with-react";
 import walletAccts from "../../components/alerts/walletAccts";
 import walletError from "../../components/alerts/walletError";
 import selectAcct from "../../components/alerts/selectAcct";
@@ -28,7 +22,6 @@ export default function Account(props) {
   const pw = "";
   const [pwConf, setPwConf] = useState("");
   const [temp, setTemp] = useState("");
-  const [zelAcct, setZelAcct] = useState();
   const [loading, setLoading] = useState(false);
 
   const is_hexadecimal = (str) => {
@@ -97,7 +90,6 @@ export default function Account(props) {
                 setLoading(true);
                 walletAccts();
                 const accts = await getAccounts();
-                swal.close();
                 if (accts.status === "success") {
                   setAcct(accts.data[0]);
                   setTemp(accts.data[0]);
