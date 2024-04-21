@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import useWindowSize from "../../hooks/useWindowSize";
 import {
   PactContext,
@@ -11,12 +11,10 @@ import MobileScreen from "./screens/mobile-screen";
 
 import { GameContextProvider } from "./game-context";
 
-export const Header = (props) => {
+export const Header = (_props) => {
   // const isSmallScreen = useWindowSize() <= 600;
-  const screenStyle = { ...style };
   const { useSetNetworkSettings, networkUrl } = useContext(PactContext);
   const windowSize = useWindowSize();
-
   useSetNetworkSettings(MAIN_NET_ID, "1");
 
   return (
@@ -39,7 +37,7 @@ export const Header = (props) => {
 };
 
 const backgroundColor = "#58B2EE";
-const style = {
+const screenStyle = {
   background: backgroundColor,
   display: "flex",
   direction: "row",

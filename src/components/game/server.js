@@ -1,8 +1,11 @@
+import { useState } from "react";
+import { useGetAllKitties } from "./pact-functions";
 // const url = `http://localhost:4214/`;
 const url = `https://kitty-kads-nft-image-backend.herokuapp.com/`;
 const imagesSuffix = "getImagesForIds";
 const searchSuffix = "search";
 const getIdsSuffix = "getAllIdsForFilters";
+const getOwnedBySuffix = "getOwnedKitties";
 
 export async function getImagesForIds(imageIds) {
   const body = { imageIds };
@@ -11,6 +14,20 @@ export async function getImagesForIds(imageIds) {
   let images = data.images;
   sortKittiesInPlace(images);
   return images;
+}
+
+export function useGetOwnedBy() {
+  const [getMyKitties] = useState(
+    () => async (account) => {
+      const body = { account };
+      const res = await fetchJson(url + getOwnedBySuffix, body);
+      const data = await res.json();
+      const { gen0, gen1 } = data;
+      return [...gen0, ...gen1];
+    },
+    []
+  );
+  return getMyKitties;
 }
 
 export async function getKittiesForFilters(filters) {

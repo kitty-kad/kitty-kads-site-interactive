@@ -97,20 +97,6 @@ function useGetPricesForKitties() {
   return getPricesForKitties;
 }
 
-function useGetChildrenForKitty() {
-  const { readFromContract, defaultMeta } = useContext(PactContext);
-  const getChildrenForKitty = useCallback(
-    async (parentId) => {
-      const pactCode = `(free.${GEN_1_CONTRACT}.${IDS_OF_CHILDREN} "${parentId}")`;
-      const meta = defaultMeta();
-      const resp = await readFromContract({ pactCode, meta });
-      return resp.map((idDict) => idDict.id);
-    },
-    [defaultMeta, readFromContract]
-  );
-  return getChildrenForKitty;
-}
-
 function useGetKittyActions() {
   const { readFromContract, defaultMeta } = useContext(PactContext);
   const getAllOnSale = useCallback(
@@ -379,5 +365,4 @@ export {
   usePutOnSale,
   useRemoveFromSale,
   useTransfer,
-  useGetChildrenForKitty,
 };

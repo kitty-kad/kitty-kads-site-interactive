@@ -242,7 +242,10 @@ export function idsForGen(ids, gen) {
   if (ids == null) {
     return null;
   }
-  return ids.filter((id) => (gen === 0 ? id.includes(":") : !id.includes(":")));
+  const idsFiltered = ids.filter((id) =>
+    gen === 0 ? id.includes(":") : !id.includes(":")
+  );
+  return idsFiltered;
 }
 
 function idsNeededForPage(page, currIds) {

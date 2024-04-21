@@ -1,6 +1,7 @@
 import React, { useContext, useState, useEffect, useMemo } from "react";
 import { GameContext } from "../game-context";
 import { SCREENS, KITTY_ACTIONS, SORT_KEYS } from "../consts";
+import { useGetOwnedBy } from "../server";
 import { SearchFilters } from "../search-utils";
 import { SortDropdown } from "../sort-utils";
 import PutOnSale from "./interaction-popups/PutOnSale";
@@ -15,7 +16,6 @@ import {
   sortKitties,
 } from "./screen-helpers";
 import {
-  useGetMyKitties,
   useGetKittiesOnSale,
   useGetKittyActions,
   useGetPricesForKitties,
@@ -64,24 +64,30 @@ function Landing() {
 
 function useFirstLoadMyKitties(currScreen) {
   const { account } = useContext(PactContext);
-  const { pagesInfo } = useContext(GameContext);
   const { handleFirstLoad } = useImageSearchAndUpdateHelpers();
-  const getMyKitties = useGetMyKitties();
-
+  const getMyKitties = useGetOwnedBy();
+  const [loading, setLoading] = useState(false);
   useEffect(() => {
     if (account?.account == null) {
       return;
     }
+    setLoading(true);
+  }, [account]);
+
+  useEffect(() => {
+    if (loading === false) {
+      return;
+    }
     handleFirstLoad(
       async () => {
-        return (await getMyKitties()).map((kitty) => kitty.id);
+        return await getMyKitties(account.account);
       },
       currScreen,
       SORT_KEYS.LOWEST_ID,
       (idsToFilter) => idsForGen(idsToFilter, 0)
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [account, pagesInfo]);
+  }, [loading]);
 }
 
 function MyKitties() {
@@ -617,12 +623,12 @@ function noParents(kitty) {
 function KittyChildren({ kitty }) {
   const { fetchNeededImages, getCurrKittiesAndIsLoading } =
     useImageSearchAndUpdateHelpers();
-  const getChildrenForKitty = useGetChildrenForKitty();
   const [childIds, setChildIds] = useState(null);
   const { id } = kitty;
   useEffect(() => {
     (async () => {
-      const ids = await getChildrenForKitty(id);
+      const ids = []; // TODO GETCH CHILDREN KITTIES
+      // const ids = await getChildrenForKitty(id);
       await fetchNeededImages(ids);
       setChildIds(ids);
     })();
@@ -878,7 +884,8 @@ function KittyCard({
             </div>
           </CenterRow>
           {showParents && <KittyParents kitty={kitty} />}
-          {showFeatures && <KittyChildren kitty={kitty} />}
+          {/* Child kitties disabled for now */}
+          {showFeatures && false && <KittyChildren kitty={kitty} />}
         </CenterColumn>
       </CenterRow>
     </div>
