@@ -6,6 +6,7 @@ import { SearchFilters } from "../search-utils";
 import { SortDropdown } from "../sort-utils";
 import PutOnSale from "./interaction-popups/PutOnSale";
 import Transfer from "./interaction-popups/Transfer";
+import kadenaiImg from '../../../kadenai.svg';
 
 import {
   useFetchAllKittiesInit,
@@ -128,27 +129,37 @@ function MyKitties() {
       : "Gen 1s were given a home by you"
   );
   return (
-    <KittiesList
-      pages={getPagesCount(allResultsIds?.length ?? 1)}
-      page={page ?? 0}
-      setPage={(number) => updatePageNum(number, currScreen)}
-      kitties={stillLoading ? null : currKitties}
-      loading={<Loading text="Looking for your kitties..." />}
-      empty={<p style={{ textAlign: "center" }}>No kitties found :O</p>}
-      header={headerText}
-      search={
-        <SearchFilters
-          gen0Override={gen0Override}
-          setGen0Ovveride={(gen) => {
-            updateGen(currScreen, gen);
-            setGen0Ovveride(gen);
-          }}
-          setSearchParams={(params, gen) =>
-            updateSearchParams(params, currScreen, null, gen)
-          }
+    <div>
+      <KittiesList
+        pages={getPagesCount(allResultsIds?.length ?? 1)}
+        page={page ?? 0}
+        setPage={(number) => updatePageNum(number, currScreen)}
+        kitties={stillLoading ? null : currKitties}
+        loading={<Loading text="Looking for your kitties..." />}
+        empty={<p style={{ textAlign: "center" }}>No kitties found :O</p>}
+        header={headerText}
+        search={
+          <SearchFilters
+            gen0Override={gen0Override}
+            setGen0Ovveride={(gen) => {
+              updateGen(currScreen, gen);
+              setGen0Ovveride(gen);
+            }}
+            setSearchParams={(params, gen) =>
+              updateSearchParams(params, currScreen, null, gen)
+            }
+          />
+        }
+      />
+      <CenterColumn extraStyle={{ marginTop: 20 }}>
+        <p>{'powered with ❤️ by Kadenai'}</p>
+        <img
+          style={{ maxWidth: 100 }}
+          src={kadenaiImg}
+          alt="powered by Kadenai"
         />
-      }
-    />
+      </CenterColumn>
+  </div>
   );
 }
 
