@@ -1,18 +1,23 @@
 import { useState, useContext, useCallback } from "react";
 import { SORT_KEYS } from "../consts";
 import { GameContext } from "../game-context";
-import { useGetAllKitties } from "../pact-functions";
 import { getImagesForIds, getIdsForFilters } from "../server";
 
 export const PAGE_SIZE = 100;
 
 export function useFetchAllKittiesInit() {
   const { setAllKittiesData } = useContext(GameContext);
-  const getAllKitties = useGetAllKitties();
   // Initialize all kitties data
   useState(() => {
     (async () => {
-      const allIds = await getAllKitties();
+      const allIds = [];
+      // Gen 0 Ids
+      for (let i = 0; i < 10_000; i++) {
+        allIds.push(`1:${i}`);
+      }
+      for (let i = 1; i < 5_001; i++) {
+        allIds.push(`${i}`);
+      }
       const sortedAllIds = sortIds(allIds);
       const allIdsToSave = [];
       for (let i = 0; i < sortedAllIds.length; i++) {
@@ -144,7 +149,7 @@ export function useImageSearchAndUpdateHelpers() {
 
   const getHeaderText = (screen, defaultText) => {
     let headerText = "";
-    const { allResultsIds, defaultIds } = pagesInfo?.[screen] ?? {};
+    const { allResultsIds } = pagesInfo?.[screen] ?? {};
     if (
       Object.keys(searchParams ?? {}).length === 0 &&
       allResultsIds?.length != null

@@ -40,22 +40,6 @@ function useGetMyKitties() {
   return getMyKitties;
 }
 
-function useGetAllKitties() {
-  const { readFromContract, defaultMeta } = useContext(PactContext);
-
-  const [getAllKitties] = useState(() => async () => {
-    const pactCodeGen0 = `(free.${KITTY_KADS_CONTRACT}.${ALL_IDS_FUNC})`;
-    const pactCodeGen1 = `(free.${GEN_1_CONTRACT}.${ALL_IDS_FUNC})`;
-    const meta = defaultMeta();
-    const [gen0Ids, gen1Ids] = await Promise.all([
-      readFromContract({ pactCode: pactCodeGen0, meta }),
-      readFromContract({ pactCode: pactCodeGen1, meta }),
-    ]);
-    return [...gen0Ids, ...gen1Ids];
-  });
-  return getAllKitties;
-}
-
 function useGetKittiesOnSale() {
   const { readFromContract, defaultMeta } = useContext(PactContext);
   const getAllOnSale = useCallback(async () => {
@@ -357,7 +341,6 @@ function marketplaceCap(account, ammount) {
 
 export {
   useGetMyKitties,
-  useGetAllKitties,
   useGetKittiesOnSale,
   useGetKittyActions,
   useGetPricesForKitties,
