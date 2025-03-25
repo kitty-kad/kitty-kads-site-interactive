@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useGetAllKitties } from "./pact-functions";
 // const url = `http://localhost:4214/`;
-const url = `https://kitty-kads-nft-image-backend.herokuapp.com/`;
+const url = `https://kitty-kad-image-generator.onrender.com/`;
 const imagesSuffix = "getImagesForIds";
 const searchSuffix = "search";
 const getIdsSuffix = "getAllIdsForFilters";
